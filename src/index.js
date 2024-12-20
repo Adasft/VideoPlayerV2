@@ -1,0 +1,224 @@
+// import { Slider } from "./widgets/slider/common/slider.js";
+// import { SliderComponent } from "./widgets/slider/common/slider-component.js";
+// import { SeekerSlider } from "./widgets/slider/seeker-slider/seeker-slider.js";
+// import { StepsSlider } from "./widgets/slider/steps-slider/steps-slider.js";
+// import { StepsSliderComponent } from "./widgets/slider/steps-slider/steps-slider-component.js";
+// import { createLoader } from "./ui/ui.js";
+
+import * as ui from "./ui/ui.js";
+
+const video = document.getElementById("video");
+const button = document.getElementById("button");
+
+button.addEventListener("click", () => {
+  ui.createSeekerSlider({
+    value: 0,
+    min: 0,
+    max: 10,
+    hoverPadding: 10,
+    chapters: [
+      { start: 0, end: 3 },
+      { start: 3, end: 5 },
+      { start: 5, end: 8 },
+      { start: 8, end: 10 },
+    ],
+  }).then((seekerSlider) => {
+    seekerSlider.mount(document.body);
+  });
+
+  ui.createStepsSlider({
+    value: 3.5,
+    steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+    showSteps: true,
+    showLabels: true,
+  }).then((stepSlider) => {
+    stepSlider.mount(document.body);
+  });
+});
+
+// const stepSlider = new StepsSlider({
+//   value: 0,
+//   // pasos para elegir la velocidad de video
+//   // steps: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+//   steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+//   showSteps: true,
+//   showLabels: true,
+//   // min: 0,
+//   // max: 10.026667,
+//   // chapters: [
+//   //   { start: 0, end: 3 },
+//   //   { start: 3, end: 5 },
+//   //   { start: 5, end: 8 },
+//   //   { start: 8, end: 10.026667 },
+//   // ],
+//   // hoverPadding: 30,
+//   // enableHoverGrowth: true,
+//   // hoverPadding: 10,
+//   // showAlwaysThumb: false,
+// });
+
+// // const slider = new Slider({
+// //   value: 0,
+// //   min: 30,
+// //   max: 50,
+// //   enableHoverGrowth: true,
+// //   hoverPadding: 10,
+// //   showAlwaysThumb: false,
+// // });
+
+// const sliderComponent = new StepsSliderComponent(stepSlider);
+
+// // document.getElementById("button").addEventListener("click", () => {
+// //   stepSlider.refresh({
+// //     value: 0,
+// //     steps: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+// //     showSteps: true,
+// //     showLabels: true,
+// //   });
+// // });
+
+// const normalSlider = new Slider({
+//   value: 0,
+//   min: 0,
+//   max: 10,
+//   hoverPadding: 10,
+// });
+
+// const normalSliderComponent = new SliderComponent(normalSlider);
+
+// // normalSlider.on("valueChanged", (value) => {
+// //   console.log("valueChanged", value);
+// // });
+
+// const seekerSlider = new SeekerSlider({
+//   value: 0,
+//   min: 0,
+//   max: 10,
+//   hoverPadding: 10,
+// });
+
+// const seekerSliderComponent = new SliderComponent(seekerSlider);
+
+// // seekerSlider.on("valueChanged", (value) => {
+// //   console.log("valueChanged", value);
+// // });
+
+// // seekerSlider.on("drag", (value) => {
+// //   console.log("drag", value);
+// // });
+
+// // seekerSlider.on("dragStart", (value) => {
+// //   console.log("dragStart", value);
+// // });
+
+// // seekerSlider.on("dragEnd", () => {
+// //   console.log("dragEnd");
+// // });
+
+// const seekerSliderChaptered = new SeekerSlider({
+//   value: 0,
+//   min: 0,
+//   max: 10,
+//   hoverPadding: 10,
+//   chapters: [
+//     { start: 0, end: 3 },
+//     { start: 3, end: 5 },
+//     { start: 5, end: 8 },
+//     { start: 8, end: 10 },
+//   ],
+// });
+
+// const seekerSliderChapteredComponent = new SliderComponent(
+//   seekerSliderChaptered
+// );
+
+// document.getElementById("button").addEventListener("click", () => {
+//   seekerSliderChaptered.refresh({
+//     value: video.currentTime,
+//     min: 0,
+//     max: 10,
+//     chapters: [
+//       { start: 0, end: 2 },
+//       { start: 2, end: 5 },
+//       { start: 5, end: 6 },
+//       { start: 6, end: 8 },
+//       { start: 8, end: 9 },
+//       { start: 9, end: 10 },
+//     ],
+//   });
+
+//   createLoader().then((loader) => {
+//     console.log(loader);
+//   });
+// });
+
+// // stepSlider.on("valueChanged", (value) => {
+// //   console.log("valueChanged", value);
+// // });
+
+// video.addEventListener("timeupdate", () => {
+//   // console.log(video.currentTime / video.duration);
+//   seekerSlider.setValue(video.currentTime);
+//   seekerSliderChaptered.setValue(video.currentTime);
+// });
+
+// video.addEventListener("progress", () => {
+//   const buffered = video.buffered;
+
+//   if (buffered.length === 0) {
+//     return null; // Devuelve null para indicar que el buffer está vacío
+//   }
+
+//   let progress = 0;
+
+//   for (let i = 0; i < buffered.length; i++) {
+//     const start = buffered.start(i);
+//     const end = buffered.end(i);
+
+//     // Si `currentTime` está dentro del rango de este segmento de buffer
+//     if (video.currentTime >= start && video.currentTime <= end) {
+//       // slider.setBufferProgress(end / video.duration);
+//       progress = end / video.duration;
+//     }
+//   }
+
+//   // Retorna 0% si el `currentTime` no está en ningún segmento de buffer
+//   seekerSlider.setBufferProgress(progress);
+//   seekerSliderChaptered.setBufferProgress(progress);
+// });
+
+// // simular buffer
+
+// // slider.on("drag", (value) => {
+// //   console.log("drag", value);
+// // });
+
+// // slider.on("dragStart", (value) => {
+// //   console.log("dragStart", value);
+// // });
+
+// // slider.on("dragEnd", () => {
+// //   console.log("dragEnd");
+// // });
+
+// normalSliderComponent.mount(document.body);
+// sliderComponent.mount(document.body);
+// seekerSliderComponent.mount(document.body);
+// seekerSliderChapteredComponent.mount(document.body);
+
+// // const controls = new Controls()
+
+// // // Aceder a los controles por categoria
+// // controls.buttons.enable("play")
+// // controls.buttons.disable("play")
+// // controls.buttons.play // <- Es un ButtonController
+
+// // controls.buttons.on("play", "click", () => {
+// //   console.log("play clicked")
+// // })
+
+// // const loader = createLoader().then((loader) => {
+// //   console.log(loader);
+// // });
+
+// // console.log(loader);
