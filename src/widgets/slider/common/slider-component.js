@@ -23,18 +23,19 @@ export default class SliderComponent extends Component {
   }
 
   #init() {
+    const slider = this.controller;
     this.#setupSliderComponents();
     this.#bindMouseEvents();
 
-    this.controller.on("refresh", () => {
+    slider.on("refresh", () => {
       this.onRefresh();
     });
-    this.controller.on("trackChanged", this.onTrackChanged.bind(this));
-    this.controller.on("mousePressed", () => {
-      this.controller.thumb.component.element.addClass("active");
+    slider.on("trackChanged", this.onTrackChanged.bind(this));
+    slider.on("mousePressed", () => {
+      slider.thumb.component.element.addClass("active");
     });
-    this.controller.on("dragEnd", () => {
-      this.controller.thumb.component.element.removeClass("active");
+    slider.on("dragEnd", () => {
+      slider.thumb.component.element.removeClass("active");
     });
   }
 
