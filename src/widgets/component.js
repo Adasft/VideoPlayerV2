@@ -1,6 +1,6 @@
-import { DomElement } from "../dom-utils/element.js";
+import { DomElement } from "../dom/element.js";
 import { Wrapper } from "./wrapper.js";
-import { Dom } from "../dom-utils/dom.js";
+import { Dom } from "../dom/dom-utils.js";
 
 export class Component {
   /**

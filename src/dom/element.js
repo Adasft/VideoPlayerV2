@@ -1,4 +1,4 @@
-import { Dom } from "./dom.js";
+import { Dom } from "./dom-utils.js";
 import { Component } from "../widgets/component.js";
 
 export class DomNode {

@@ -1,5 +1,5 @@
 import { Component } from "../../component.js";
-import { Dom } from "../../../dom-utils/dom.js";
+import { Dom } from "../../../dom/dom-utils.js";
 import { SliderProgressBarComponent } from "../common/progress-bar-component.js";
 // import { SeekerSlider } from "../seeker-slider/seeker-slider.js";
 

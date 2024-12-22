@@ -1,5 +1,5 @@
 import { Component } from "../../component.js";
-import { Dom } from "../../../dom-utils/dom.js";
+import { Dom } from "../../../dom/dom-utils.js";
 
 export class SliderProgressBarComponent extends Component {
   constructor(controller) {

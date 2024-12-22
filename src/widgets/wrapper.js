@@ -1,4 +1,4 @@
-import { Dom } from "../dom-utils/dom.js";
+import { Dom } from "../dom/dom-utils.js";
 import { Component } from "./component.js";
 
 export class Wrapper {

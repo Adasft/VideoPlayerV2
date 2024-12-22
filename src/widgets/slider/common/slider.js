@@ -131,6 +131,8 @@ export default class Slider extends Controller {
     );
   }
 
+  #isInitializedValue = false;
+
   constructor({
     value,
     min,
@@ -192,12 +194,14 @@ export default class Slider extends Controller {
 
   initializeValue() {
     this.setValue(this.#value);
+    this.#isInitializedValue = true;
   }
 
   setValue(value) {
     const isSameValue = this.#applyValue(value);
 
-    if (isSameValue || this.isUpdateNotAllowed) return;
+    if ((isSameValue && this.#isInitializedValue) || this.isUpdateNotAllowed)
+      return;
 
     this.#isAutoSliding = !this.isDragging && !this.isMousePressed;
 

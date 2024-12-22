@@ -1,24 +1,50 @@
 import Slider from "../common/slider.js";
 
 export default class StepsSlider extends Slider {
+  /**
+   * Pasos que representan los valores del slider.
+   *
+   * @type {number[]}
+   */
   #steps;
+
   get steps() {
     return this.#steps;
   }
+
+  /**
+   * Indica si se deben mostrar los pasos o no.
+   *
+   * @type {boolean}
+   */
   #showSteps;
+
   get showSteps() {
     return this.#showSteps;
   }
+
+  /**
+   * Indica si se deben mostrar las etiquetas o no.
+   *
+   * @type {boolean}
+   */
   #showLabels;
+
   get showLabels() {
     return this.#showLabels;
   }
 
+  /**
+   * Cache para no llamar a setValue si el valor actual no cambia
+   *
+   * @type {[number, number]}
+   */
   #stepTreatedCache = [];
 
   constructor({ value, steps, showSteps = false, showLabels = false }) {
     const min = steps.at(0);
     const max = steps.at(-1);
+    console.log({ value, min, max });
     super({
       value: value ?? min,
       min,
@@ -35,20 +61,40 @@ export default class StepsSlider extends Slider {
     this.createTrack();
   }
 
+  /**
+   * Devuelve un array con los pasos de inicio y fin en los que cae el valor actual.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @returns {[number | undefined, number | undefined]} - El array con los pasos de inicio y fin en los que cae el valor actual.
+   */
   #getStepRange(value) {
-    return this.#steps.filter((step, index) => {
-      return (
+    return this.#steps.filter(
+      (step, index) =>
         (step <= value && this.#steps[index + 1] > value) ||
         (this.#steps[index - 1] <= value && step > value)
-      );
-    });
+    );
   }
 
+  /**
+   * Calcula la proximidad del valor actual en relación con los pasos de inicio y fin.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
+   * @param {number} endStep - El paso de fin en el que cae el valor actual.
+   * @returns {number} - La proximidad del valor actual en relación con los pasos de inicio y fin.
+   */
   #calculateStepProximity(value, startStep, endStep) {
     const stepDiff = endStep - startStep;
     return (stepDiff - (value - startStep)) / stepDiff;
   }
 
+  /**
+   * Llama a setValue si el valor actual cambia y los pasos de inicio y fin no han sido tratados previamente.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
+   * @param {number} endStep - El paso de fin en el que cae el valor actual.
+   */
   #triggerSetValueForChanges(value, startStep, endStep) {
     const stepProximity = this.#calculateStepProximity(
       value,
@@ -63,10 +109,12 @@ export default class StepsSlider extends Slider {
     }
   }
 
-  initializeValue() {
-    this.setValue(this.getValue());
-  }
-
+  /**
+   * Calcula el porcentaje que representa el paso en el slider.
+   *
+   * @param {number} index - El índice del paso.
+   * @returns {number} - El porcentaje que representa el paso en el slider.
+   */
   getStepRatio(index) {
     const step = this.#steps[index];
     return (step - this.min) / (this.max - this.min);
@@ -77,25 +125,21 @@ export default class StepsSlider extends Slider {
   }
 
   setValue(value) {
-    value = this.clampValue(value);
-
     // Determinar los pasos de inicio y fin en los que cae el valor
-    const [startStep, endStep] = this.#getStepRange(value);
+    const [startStep, endStep] = this.#getStepRange(this.clampValue(value));
 
     if (startStep === undefined || endStep === undefined) {
       return;
     }
 
-    if (
-      this.#stepTreatedCache[0] === startStep &&
-      this.#stepTreatedCache[1] === endStep
-    ) {
-      this.#triggerSetValueForChanges(value, startStep, endStep);
-      return;
-    }
-
     this.#triggerSetValueForChanges(value, startStep, endStep);
-    this.#stepTreatedCache = [startStep, endStep];
+
+    if (
+      this.#stepTreatedCache[0] !== startStep &&
+      this.#stepTreatedCache[1] !== endStep
+    ) {
+      this.#stepTreatedCache = [startStep, endStep];
+    }
   }
 
   refresh({

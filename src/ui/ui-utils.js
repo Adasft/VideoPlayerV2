@@ -13,7 +13,7 @@ const widgetPaths = {
   },
   seekerSlider: {
     controller: "../widgets/slider/seeker-slider/seeker-slider.js",
-    component: "../widgets/slider/common/slider-component.js",
+    component: "../widgets/slider/seeker-slider/seeker-slider-component.js",
   },
   stepsSlider: {
     controller: "../widgets/slider/steps-slider/steps-slider.js",
@@ -62,7 +62,12 @@ export async function createStepsSlider(options) {
 }
 
 export async function createVolumeSlider({ volume }) {
-  return await createWidget(widgetPaths.volumeSlider, { value: volume });
+  return await createWidget(widgetPaths.volumeSlider, {
+    value: volume,
+    min: 0,
+    max: 1,
+    hoverPadding: 10,
+  });
 }
 
 export async function createVideo(options) {

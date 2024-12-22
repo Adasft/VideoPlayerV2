@@ -5,14 +5,15 @@
 // import { StepsSliderComponent } from "./widgets/slider/steps-slider/steps-slider-component.js";
 // import { createLoader } from "./ui/ui.js";
 
-import * as ui from "./ui/ui.js";
+import * as ui from "./ui/ui-utils.js";
+import { Controls } from "./widgets/controls.js";
 
 const video = document.getElementById("video");
 const button = document.getElementById("button");
 
 button.addEventListener("click", () => {
   ui.createSeekerSlider({
-    value: 0,
+    value: 6,
     min: 0,
     max: 10,
     hoverPadding: 10,
@@ -27,14 +28,40 @@ button.addEventListener("click", () => {
   });
 
   ui.createStepsSlider({
-    value: 3.5,
+    value: 6.7,
     steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
     showSteps: true,
     showLabels: true,
   }).then((stepSlider) => {
+    stepSlider.on("valueChanged", (value) => {
+      console.log("valueChanged", value);
+    });
+
     stepSlider.mount(document.body);
   });
+
+  ui.createVolumeSlider({
+    volume: 0.5,
+  }).then((volumeSlider) => {
+    volumeSlider.mount(document.body);
+  });
 });
+
+const controls = new Controls();
+
+controls.defineGroup({
+  name: "textViews",
+  createControl: (options) => ui.createTextView(options),
+});
+
+controls.textViews.add({
+  title: { text: "Title" },
+  description: { text: "Description" },
+});
+
+console.log(controls.textViews.title);
+
+window.controls = controls;
 
 // const stepSlider = new StepsSlider({
 //   value: 0,

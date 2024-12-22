@@ -17,18 +17,8 @@ export default class SeekerSlider extends Slider {
   /**
    * The indicator track of the slider.
    *
-   * @type {SliderTrack | null}
+   * @type {SliderTrack}
    */
-  // #indicatorTrack = null;
-
-  // get indicatorTrack() {
-  //   return this.#indicatorTrack;
-  // }
-
-  // set indicatorTrack(track) {
-  //   this.#indicatorTrack = track;
-  // }
-
   get indicatorTrack() {
     return this.hasChapters()
       ? this.multiTrackManager.getIndicatorCurrentTrack()
@@ -47,11 +37,17 @@ export default class SeekerSlider extends Slider {
   }
 
   /**
-   * The buffer loading progress of the slider.
+   * El progreso de carga del buffer del slider.
    *
    * @type {number}
    */
   #bufferLoadingProgress;
+
+  /**
+   * El valor del indicador del slider.
+   *
+   * @type {number}
+   */
   #indicatorValue;
 
   constructor({ value, min, max, hoverPadding, chapters = [] }) {
