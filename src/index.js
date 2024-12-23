@@ -6,60 +6,71 @@
 // import { createLoader } from "./ui/ui.js";
 
 import * as ui from "./ui/ui-utils.js";
-import { Controls } from "./widgets/controls.js";
+import { Controls } from "./ui/controls.js";
+import SVGIcons from "./ui/icons.js";
 
 const video = document.getElementById("video");
 const button = document.getElementById("button");
 
-button.addEventListener("click", () => {
-  ui.createSeekerSlider({
-    value: 6,
-    min: 0,
-    max: 10,
-    hoverPadding: 10,
-    chapters: [
-      { start: 0, end: 3 },
-      { start: 3, end: 5 },
-      { start: 5, end: 8 },
-      { start: 8, end: 10 },
-    ],
-  }).then((seekerSlider) => {
-    seekerSlider.mount(document.body);
-  });
-
-  ui.createStepsSlider({
-    value: 6.7,
-    steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
-    showSteps: true,
-    showLabels: true,
-  }).then((stepSlider) => {
-    stepSlider.on("valueChanged", (value) => {
-      console.log("valueChanged", value);
-    });
-
-    stepSlider.mount(document.body);
-  });
-
-  ui.createVolumeSlider({
-    volume: 0.5,
-  }).then((volumeSlider) => {
-    volumeSlider.mount(document.body);
-  });
-});
-
 const controls = new Controls();
 
 controls.defineGroup({
-  name: "textViews",
-  createControl: (options) => ui.createTextView(options),
+  name: "buttons",
+  createControl: (options) => ui.createButton(options),
 });
 
-controls.textViews.add({
-  title: { text: "Title" },
-  description: { text: "Description" },
+controls.buttons.add({
+  forward: { icon: SVGIcons.FORWARD },
+  backward: { icon: SVGIcons.BACKWARD },
 });
 
-console.log(controls.textViews.title);
+const createPlaybackButtons = controls.buttons.createWhen(() => !video.paused);
+
+button.addEventListener("click", () => {
+  // ui.createSeekerSlider({
+  //   value: 6,
+  //   min: 0,
+  //   max: 10,
+  //   hoverPadding: 10,
+  //   chapters: [
+  //     { start: 0, end: 3 },
+  //     { start: 3, end: 5 },
+  //     { start: 5, end: 8 },
+  //     { start: 8, end: 10 },
+  //   ],
+  // }).then((seekerSlider) => {
+  //   seekerSlider.mount(document.body);
+  // });
+
+  // ui.createStepsSlider({
+  //   value: 6.7,
+  //   steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+  //   showSteps: true,
+  //   showLabels: true,
+  // }).then((stepSlider) => {
+  //   stepSlider.on("valueChanged", (value) => {
+  //     console.log("valueChanged", value);
+  //   });
+
+  //   stepSlider.mount(document.body);
+  // });
+
+  // ui.createVolumeSlider({
+  //   volume: 0.5,
+  // }).then((volumeSlider) => {
+  //   volumeSlider.mount(document.body);
+  // });
+
+  // console.log(video.isPlaying);
+  // console.log(video.paused);
+
+  createPlaybackButtons({
+    play: { icon: SVGIcons.PLAY },
+    pause: { icon: SVGIcons.PAUSE },
+  });
+});
+
+// console.log(controls.textViews.title);
 
 window.controls = controls;
 
@@ -238,7 +249,7 @@ window.controls = controls;
 // // // Aceder a los controles por categoria
 // // controls.buttons.enable("play")
 // // controls.buttons.disable("play")
-// // controls.buttons.play // <- Es un ButtonController
+// // controls.buttons.play // <- Es un ButtonWidget
 
 // // controls.buttons.on("play", "click", () => {
 // //   console.log("play clicked")

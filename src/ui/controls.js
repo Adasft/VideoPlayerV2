@@ -13,7 +13,7 @@ class ControlsGroup {
   /**
    * Funcion para crear el control
    *
-   * @type {(options: Object<string, any>) => Controller}
+   * @type {(options: Object<string, any>) => Widget}
    */
   #createControl;
 
@@ -21,37 +21,37 @@ class ControlsGroup {
     return this.#createControl;
   }
 
-  /**
-   * Objeto con los controles del grupo
-   *
-   * @type {Object<string, Controller>}
-   */
-  #controls = {};
-
-  get controls() {
-    return this.#controls;
-  }
-
-  #controlsNames = new Set();
-
-  get controlsNames() {
-    return this.#controlsNames;
-  }
-
   constructor(group) {
     this.#name = group.name;
     this.#createControl = group.createControl;
-
-    new Proxy(this, {
-      get: (target, name) => {
-        if (!target.controlsNames.has(name)) {
-          return target[name];
-        }
-
-        return target.controls[name];
-      },
-    });
   }
+
+  #forEachControls(controls, callback) {
+    const controlsEntries = Object.entries(controls);
+    for (const [name, options] of controlsEntries) {
+      if (controls[name] === null) {
+        return;
+      }
+      callback({ name, options });
+    }
+  }
+
+  #createConditionalControls = ({ name, options }) => {
+    if (this.hasOwnProperty(name) && !!this[name]) {
+      return;
+    }
+    this.#defineControl(name, options);
+  };
+
+  #destroyConditionalControls = ({ name }) => {
+    if (!this.hasOwnProperty(name)) {
+      return;
+    }
+
+    const control = this[name];
+    control.destroy();
+    this[name] = null;
+  };
 
   /**
    * Crea un control y lo agrega al grupo
@@ -59,11 +59,10 @@ class ControlsGroup {
    * @param {string} name Nombre del control
    * @param {Object<string, any>} options Opciones del control
    */
-  defineControl(name, options) {
-    return this.createControl(options)
+  #defineControl(name, options) {
+    this.createControl(options)
       .then((control) => {
-        Object.assign(this.controls, { [name]: control });
-        this.controlsNames.add(name);
+        Object.assign(this, { [name]: control });
       })
       .catch((error) => {
         console.error("Error creating control:", error);
@@ -78,14 +77,38 @@ class ControlsGroup {
    */
   add(controls) {
     for (const [name, options] of Object.entries(controls)) {
-      if (this.controlsNames.has(name)) {
-        console.warn(
-          `Control "${name}" already exists in group "${this.name}".`
-        );
-        continue;
-      }
-      this.defineControl(name, options);
+      this.#defineControl(name, options);
     }
+  }
+
+  /**
+   * Crea los controles cuando se cumple la condición, y los destruye cuando no se cumple.
+   * Si los botones ya existen, y la condición se cumple, no se crearán nuevos controles.
+   * Si los botones ya existen, y la condición no se cumple, se destruirán los controles existentes.
+   *
+   * @example
+   *
+   * const createPlaybackButtons = controls.createWhen(() => video.isPlaying);
+   *
+   * createPlaybackButtons({
+   *   play: { icon: SVGIcons.PLAY },
+   *   pause: { icon: SVGIcons.PAUSE },
+   * });
+   *
+   * @param {() => boolean} condition Condición que determina si los controles se crearán o destruirán.
+   * @returns {(controls: Object<string, any>) => void} Función que recibe los controles y los crea o los destruye según la condición.
+   */
+  createWhen(condition) {
+    return (controls) => {
+      const isTrue = condition();
+
+      this.#forEachControls(
+        controls,
+        isTrue
+          ? this.#createConditionalControls
+          : this.#destroyConditionalControls
+      );
+    };
   }
 }
 
@@ -101,7 +124,7 @@ export class Controls {
    *
    * @param {Object} group Objeto con los atributos del grupo
    * @param {string} group.name Nombre del grupo
-   * @param {(options: Object<string, any>) => Controller} group.createControl Funcion para crear el control
+   * @param {(options: Object<string, any>) => Widget} group.createControl Funcion para crear el control
    */
   defineGroup({ name, createControl }) {
     if (this.hasOwnProperty(name)) {

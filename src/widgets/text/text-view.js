@@ -1,6 +1,6 @@
-import { Controller } from "../controller.js";
+import { Widget } from "../widget.js";
 
-export default class TextView extends Controller {
+export default class TextView extends Widget {
   #text;
 
   constructor({ text }) {

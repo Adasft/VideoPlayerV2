@@ -2,13 +2,13 @@ import { Component } from "../component.js";
 import { Dom } from "../../dom-utils/dom.js";
 
 export default class VideoComponent extends Component {
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#init();
   }
 
   #initializeVideoData() {
-    const video = this.controller;
+    const video = this.widget;
 
     Object.assign(this.node, {
       width: video.width,
@@ -53,7 +53,7 @@ export default class VideoComponent extends Component {
   }
 
   #init() {
-    const video = this.controller;
+    const video = this.widget;
     // Eventos del controlador
     video.on("refresh", this.#initializeVideoData.bind(this));
     video.on("volumeChange", (volume) => (this.node.volume = volume));
@@ -76,7 +76,7 @@ export default class VideoComponent extends Component {
       video.emit("progress", this.#calculateBufferedEndProgress())
     );
     this.#bindEvent("error", () =>
-      console.error("VideoController: error loading video")
+      console.error("VideoWidget: error loading video")
     );
     this.#bindEvent("ended", () => video.emit("ended"));
 
@@ -92,7 +92,7 @@ export default class VideoComponent extends Component {
   }
 
   #onPlaying() {
-    const video = this.controller;
+    const video = this.widget;
     video.emit("playing");
     if (video.loop && Math.floor(video.currentTime) === 0) {
       if (video.loopMode === "once") {
@@ -105,13 +105,13 @@ export default class VideoComponent extends Component {
     this.#bindEvent(
       "canplay",
       () => {
-        this.controller.emit("canPlay");
-        this.controller.emit("audioDetected", this.#hasAudio());
+        this.widget.emit("canPlay");
+        this.widget.emit("audioDetected", this.#hasAudio());
       },
       { once: true }
     );
 
-    this.controller.emit("loadedMetaData", {
+    this.widget.emit("loadedMetaData", {
       duration: this.node.duration,
       currentTime: this.node.currentTime,
       volume: this.node.volume,
@@ -139,7 +139,7 @@ export default class VideoComponent extends Component {
       .requestPictureInPicture()
       .then(() => {
         Dom.once(document, "leavepictureinpicture", () => {
-          this.controller.emit("pictureInPictureExit");
+          this.widget.emit("pictureInPictureExit");
         });
       })
       .catch(() => {

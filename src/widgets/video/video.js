@@ -1,6 +1,6 @@
-import { Controller } from "../controller.js";
+import { Widget } from "../widget.js";
 
-export default class Video extends Controller {
+export default class Video extends Widget {
   #hasAudio = true;
 
   get hasAudio() {
@@ -115,7 +115,7 @@ export default class Video extends Controller {
     isMuted = false,
   }) {
     super();
-    if (!src) throw new Error("VideoController: src must be provided");
+    if (!src) throw new Error("VideoWidget: src must be provided");
     this.#src = src;
     this.#width = width;
     this.#height = height;
@@ -123,7 +123,7 @@ export default class Video extends Controller {
     this.#isMuted = isMuted;
     this.#currentTime = currentTime;
 
-    // this.injectEventController(new MediaPlaybackEventController(this.eventBus));
+    // this.injectEventWidget(new MediaPlaybackEventWidget(this.eventBus));
 
     this.on("play", () => {
       this.#isPlaying = true;

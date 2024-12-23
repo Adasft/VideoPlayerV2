@@ -8,8 +8,8 @@ export default class SliderComponent extends Component {
   #throttledBoundsRecalculation;
   #isMouseEntered = false;
 
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#throttledBoundsRecalculation = throttle(
       this.#recalculateBounds.bind(this),
       1000
@@ -19,7 +19,7 @@ export default class SliderComponent extends Component {
   }
 
   #init() {
-    const slider = this.controller;
+    const slider = this.widget;
     this.#setupSliderComponents();
     this.#bindMouseEvents();
 
@@ -35,18 +35,18 @@ export default class SliderComponent extends Component {
   }
 
   #setupSliderComponents() {
-    this.append(new SliderThumbComponent(this.controller.thumb));
+    this.append(new SliderThumbComponent(this.widget.thumb));
     this.#appendTracks();
   }
 
   #appendTracks() {
-    for (const track of this.controller.tracks) {
+    for (const track of this.widget.tracks) {
       this.append(new SliderTrackComponent(track));
     }
   }
 
   #recalculateBounds() {
-    const { tracks } = this.controller;
+    const { tracks } = this.widget;
     for (const track of tracks) {
       track.component.element.recalculateBounds();
     }
@@ -65,13 +65,13 @@ export default class SliderComponent extends Component {
   }
 
   #unbindGlobalEvents() {
-    this.controller.isMouseMoving = false;
+    this.widget.isMouseMoving = false;
     Dom.off(document, "mousemove");
     Dom.off(document, "mouseup");
   }
 
   disableHoverEffects(canUnbindGlobalEvents = true) {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     if (slider.isHoverGrowthEnabled()) {
       this.element.removeClass("hover");
@@ -86,8 +86,8 @@ export default class SliderComponent extends Component {
 
   mousePositionToValue(mouseX) {
     const bounds = this.bounds;
-    const max = this.controller.max;
-    const min = this.controller.min;
+    const max = this.widget.max;
+    const min = this.widget.min;
     return ((mouseX - bounds.x) / bounds.width) * (max - min) + min;
   }
 
@@ -96,7 +96,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseMove({ clientX }) {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     if (!slider.isMouseMoving) return;
 
@@ -122,7 +122,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseUp({ target }) {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     if (!this.#isMouseEntered) {
       const closestTarget = target.closest(".slider-container");
@@ -140,7 +140,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseEnter() {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
     this.#isMouseEntered = true;
 
     if (slider.isHoverGrowthEnabled()) {
@@ -156,7 +156,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseLeave() {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
     this.#isMouseEntered = false;
 
     if (slider.isDragging) return;
@@ -165,7 +165,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseDown({ clientX }) {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     Dom.disableSelection();
     Dom.setCursorPointer();
@@ -178,7 +178,7 @@ export default class SliderComponent extends Component {
   }
 
   onMounted() {
-    this.controller.initializeValue();
+    this.widget.initializeValue();
   }
 
   createElement() {

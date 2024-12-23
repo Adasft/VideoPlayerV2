@@ -1,10 +1,10 @@
-// import ClickableEventController from "../eventControllers/clickableEventController.js";
-import { Controller } from "../controller.js";
+// import ClickableEventWidget from "../eventWidgets/clickableEventWidget.js";
+import { Widget } from "../widget.js";
 import { SVGIcon } from "../../ui/icons.js";
 
-export default class Button extends Controller {
+export default class Button extends Widget {
   /**
-   * Icono del controller
+   * Icono del boton
    *
    * @type {SVGIcon}
    */
@@ -18,17 +18,7 @@ export default class Button extends Controller {
       throw new Error("Invalid icon type, must be an instance of SVGIcon");
     }
     this.#icon = icon;
-    // this.injectEventController(new ClickableEventController(this.eventBus));
   }
-
-  // setEnabled(isEnabled) {
-  //   this.#isEnabled = isEnabled;
-  //   this.emit("enabledChange", isEnabled);
-  // }
-
-  // isEnabled() {
-  //   return this.#isEnabled;
-  // }
 
   set enabled(isEnabled) {
     this.#isEnabled = isEnabled;
@@ -39,16 +29,12 @@ export default class Button extends Controller {
     return this.#isEnabled;
   }
 
-  // isFilled() {
-  //   return this.#icon.isFilled();
-  // }
-
   get hasFilledIcon() {
     return this.#icon.isFilled();
   }
 
   /**
-   * Establece el icono del controller
+   * Establece el icono del boton
    *
    * @param {SVGIcon} icon
    */
@@ -59,7 +45,7 @@ export default class Button extends Controller {
   }
 
   /**
-   * Retorna el icono del controller
+   * Retorna el icono del boton
    *
    * @returns {SVGIcon}
    */
@@ -68,7 +54,7 @@ export default class Button extends Controller {
   }
 
   /**
-   * Retorna si el controller tiene un icono
+   * Retorna si el boton tiene un icono
    *
    * @returns {boolean}
    */

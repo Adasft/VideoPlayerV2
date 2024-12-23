@@ -5,8 +5,8 @@ export default class StepsSliderComponent extends SliderComponent {
   #stepElementsSet = [];
   #lastStepIndex = null;
 
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#init();
   }
 
@@ -15,7 +15,7 @@ export default class StepsSliderComponent extends SliderComponent {
   }
 
   #createSteps() {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
     const { steps } = slider;
 
     if (!slider.showSteps) return;
@@ -35,7 +35,7 @@ export default class StepsSliderComponent extends SliderComponent {
       this.#stepElementsSet.push(stepElement);
     }
 
-    this.controller.on("valueChanged", this.#onValueChanged.bind(this));
+    this.widget.on("valueChanged", this.#onValueChanged.bind(this));
   }
 
   #removeSteps() {
@@ -48,7 +48,7 @@ export default class StepsSliderComponent extends SliderComponent {
   }
 
   #createStepsLabels() {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     if (!slider.showLabels) return;
 
@@ -83,7 +83,7 @@ export default class StepsSliderComponent extends SliderComponent {
   }
 
   #onValueChanged(step) {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
     const stepIndex = slider.getStepIndex(step);
     const activateStepsLeft =
       this.#lastStepIndex < stepIndex || this.#lastStepIndex === null;
@@ -114,7 +114,7 @@ export default class StepsSliderComponent extends SliderComponent {
     super.onRefresh();
 
     this.#removeSteps();
-    this.controller.off("valueChanged");
+    this.widget.off("valueChanged");
     this.#createSteps();
     this.#createStepsLabels();
   }

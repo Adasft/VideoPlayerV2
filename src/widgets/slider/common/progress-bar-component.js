@@ -2,19 +2,19 @@ import { Component } from "../../component.js";
 import { Dom } from "../../../dom/dom-utils.js";
 
 export class SliderProgressBarComponent extends Component {
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#init();
   }
 
   #init() {
-    this.controller.on("progressUpdate", (progress) => {
+    this.widget.on("progressUpdate", (progress) => {
       this.css({
         width: `${progress * 100}%`,
       });
     });
 
-    this.element.addClass(this.controller.getName());
+    this.element.addClass(this.widget.getName());
   }
 
   createElement() {

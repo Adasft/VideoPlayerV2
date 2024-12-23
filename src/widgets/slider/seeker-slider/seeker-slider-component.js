@@ -1,18 +1,18 @@
 import SliderComponent from "../common/slider-component.js";
 
 export default class SeekerSliderComponent extends SliderComponent {
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#init();
   }
 
   #init() {
     this.#toggleChaptersClass();
-    this.controller.on("trackChanged", this.onTrackChanged.bind(this));
+    this.widget.on("trackChanged", this.onTrackChanged.bind(this));
   }
 
   #resetIndicatorTrackBars() {
-    const { controller: slider } = this;
+    const { widget: slider } = this;
 
     if (slider.hasChapters()) {
       slider.multiTrackManager.rasterizeTrackBar({
@@ -27,12 +27,12 @@ export default class SeekerSliderComponent extends SliderComponent {
   }
 
   #toggleChaptersClass() {
-    this.element.toggleClass("has-chapters", this.controller.hasChapters());
+    this.element.toggleClass("has-chapters", this.widget.hasChapters());
   }
 
   disableHoverEffects(canUnbindGlobalEvents = true) {
     super.disableHoverEffects(canUnbindGlobalEvents);
-    this.controller.track.component.element.removeClass("active");
+    this.widget.track.component.element.removeClass("active");
   }
 
   onRefresh() {
@@ -41,7 +41,7 @@ export default class SeekerSliderComponent extends SliderComponent {
   }
 
   onTrackChanged({ currentTrack, oldTrack }) {
-    const { isDragging } = this.controller;
+    const { isDragging } = this.widget;
     if (!isDragging) return;
     currentTrack.component.element.addClass("active");
     oldTrack?.component.element.removeClass("active");

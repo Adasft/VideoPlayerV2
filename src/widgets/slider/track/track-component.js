@@ -4,15 +4,15 @@ import { SliderProgressBarComponent } from "../common/progress-bar-component.js"
 // import { SeekerSlider } from "../seeker-slider/seeker-slider.js";
 
 export class SliderTrackComponent extends Component {
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.setOnAppend();
     this.#init();
   }
 
   #createProgressBarsWrapper() {
     const wrapper = this.wrapper("div", "slider-progress-bars-wrapper");
-    const { bars } = this.controller;
+    const { bars } = this.widget;
 
     for (const [, bar] of Object.entries(bars)) {
       wrapper.add(new SliderProgressBarComponent(bar));
@@ -27,7 +27,7 @@ export class SliderTrackComponent extends Component {
   }
 
   #init() {
-    const { controller: track } = this;
+    const { widget: track } = this;
 
     this.element.append([this.#createProgressBarsWrapper()]);
 
@@ -39,7 +39,7 @@ export class SliderTrackComponent extends Component {
   }
 
   #setHoverPadding() {
-    const hoverPadding = this.parent.controller.getHoverPadding();
+    const hoverPadding = this.parent.widget.getHoverPadding();
 
     if (hoverPadding > 0) {
       this.css({
@@ -54,7 +54,7 @@ export class SliderTrackComponent extends Component {
   }
 
   onMouseLeave() {
-    const { controller: slider } = this.parent;
+    const { widget: slider } = this.parent;
 
     if (slider.isDragging) return;
 
@@ -63,9 +63,9 @@ export class SliderTrackComponent extends Component {
 
   // onTrackChanged(track) {
   //   console.log("onTrackChanged", this);
-  //   const { isDragging } = this.parent.controller;
+  //   const { isDragging } = this.parent.widget;
   //   if (!isDragging) return;
-  //   if (track.getIndex() === this.controller.getIndex()) {
+  //   if (track.getIndex() === this.widget.getIndex()) {
   //     this.element.addClass("active");
   //   } else {
   //     this.element.removeClass("active");
@@ -75,11 +75,11 @@ export class SliderTrackComponent extends Component {
   onAppended() {
     this.#setHoverPadding();
     // console.log("onAppended", this);
-    // this.parent.controller.on("trackChanged", (track) => {
+    // this.parent.widget.on("trackChanged", (track) => {
     //   console.log("onTrackChanged", this);
-    //   const { isDragging } = this.parent.controller;
+    //   const { isDragging } = this.parent.widget;
     //   if (!isDragging) return;
-    //   if (track.getIndex() === this.controller.getIndex()) {
+    //   if (track.getIndex() === this.widget.getIndex()) {
     //     this.element.addClass("active");
     //   } else {
     //     this.element.removeClass("active");

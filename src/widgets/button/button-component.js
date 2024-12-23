@@ -1,47 +1,45 @@
-import { Dom } from "../../dom-utils/dom.js";
-import { Controller } from "../controller.js";
+import { Dom } from "../../dom/dom-utils.js";
+// import { Widget } from "../widget.js";
 import { Component } from "../component.js";
 
 export default class ButtonComponent extends Component {
-  static CLASS_NAME = "player-button-control";
-
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.init();
   }
 
   #setIcon(icon) {
-    this.setHTML(icon.getHTML());
+    this.element.innerHTML = icon.getHTML();
   }
 
   #handleClickEvent = () => {
-    this.controller.emit(Controller.CLICK_EVT);
+    this.widget.emit("click");
   };
 
   init() {
-    if (this.controller.hasIcon()) {
-      this.#setIcon(this.controller.getIcon());
-      this.controller.on(Controller.ICON_CHANGE_EVT, (icon) => {
+    if (this.widget.hasIcon) {
+      this.#setIcon(this.widget.icon);
+      this.widget.on("iconChange", (icon) => {
         this.#setIcon(icon);
       });
     }
 
-    this.addClass(this.controller.isFilled() ? "filled-icon" : "outline-icon");
+    this.addClass(this.widget.isFilled ? "filled-icon" : "outline-icon");
 
-    this.on(Component.CLICK, this.#handleClickEvent);
+    this.on("click", this.#handleClickEvent);
 
-    this.controller.on("enabledChange", (isEnabled) => {
+    this.widget.on("enabledChange", (isEnabled) => {
       this.node.disabled = !isEnabled;
       if (isEnabled) {
-        this.on(Component.CLICK, this.#handleClickEvent);
+        this.on("click", this.#handleClickEvent);
         this.removeClass("disabled");
       } else {
-        this.off(Component.CLICK, this.#handleClickEvent);
+        this.off("click", this.#handleClickEvent);
         this.addClass("disabled");
       }
     });
 
-    this.controller.on("selectedChange", (isSelected) => {
+    this.widget.on("selectedChange", (isSelected) => {
       if (isSelected) {
         this.addClass("selected");
       } else {
@@ -52,7 +50,7 @@ export default class ButtonComponent extends Component {
 
   createElement() {
     return Dom.elm("button", {
-      class: ButtonComponent.CLASS_NAME,
+      class: "player-button-control",
     });
   }
 }

@@ -7,16 +7,16 @@ export default class TextViewComponent extends Component {
   /**
    * Crea un componente de texto virtual del controlador
    *
-   * @param {Text} controller
+   * @param {Text} widget
    * @param {Component} parent
    */
-  constructor(controller) {
-    super(controller);
+  constructor(widget) {
+    super(widget);
     this.#init();
   }
 
   #init() {
-    const textView = this.controller;
+    const textView = this.widget;
     this.#textNode = Dom.text(textView.text);
     this.element.append([this.#textNode]);
 

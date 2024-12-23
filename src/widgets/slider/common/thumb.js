@@ -1,6 +1,6 @@
-import { Controller } from "../../controller.js";
+import { Widget } from "../../widget.js";
 
-export class SliderThumb extends Controller {
+export class SliderThumb extends Widget {
   constructor() {
     super();
   }

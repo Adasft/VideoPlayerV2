@@ -1,10 +1,10 @@
-import { Controller } from "../../controller.js";
+import { Widget } from "../../widget.js";
 import { ChapteredTrackList } from "../track/chaptered-track-list.js";
 import { SliderTrack } from "../track/track.js";
 import { SliderThumb } from "./thumb.js";
 // import { SeekerSlider } from "../seeker-slider/seeker-slider.js";
 
-export default class Slider extends Controller {
+export default class Slider extends Widget {
   /**
    * The current value of the slider.
    *

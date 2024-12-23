@@ -23,14 +23,14 @@ export class Component {
   static #lifecycleStates;
 
   /**
-   * Controller that manages the component.
+   * Widget that manages the component.
    *
-   * @type {Controller}
+   * @type {Widget}
    */
-  #controller;
+  #widget;
 
-  get controller() {
-    return this.#controller;
+  get widget() {
+    return this.#widget;
   }
 
   /**
@@ -59,8 +59,6 @@ export class Component {
     this.#parent = parent;
   }
 
-  #children = new Set();
-
   get node() {
     return this.#element.node;
   }
@@ -81,17 +79,17 @@ export class Component {
     return this.#element.off;
   }
 
-  constructor(controller) {
-    this.#controller = controller;
+  constructor(widget) {
+    this.#widget = widget;
     const element = this.createElement();
     if (!element || !(element instanceof DomElement)) {
       throw new Error("Component.createElement() must return a DomElement.");
     }
     this.#element = element;
 
-    if (this.controller) {
-      this.controller.component = this;
-      this.controller.on("destroy", () => this.destroy());
+    if (this.widget) {
+      this.widget.component = this;
+      this.widget.on("destroy", () => this.destroy());
     }
   }
 
@@ -168,6 +166,14 @@ export class Component {
     this.#element.addClass("hide");
   }
 
+  addClass(className) {
+    this.#element.addClass(className);
+  }
+
+  removeClass(className) {
+    this.#element.removeClass(className);
+  }
+
   css(styles) {
     this.#element.css(styles);
   }
@@ -212,14 +218,12 @@ export class Component {
    */
   mount(parent) {
     if (!parent) {
-      throw new Error(
-        "Controller.render() must be called with a parent element."
-      );
+      throw new Error("Widget.render() must be called with a parent element.");
     }
 
     if (!parent.isConnected) {
       throw new Error(
-        "Controller.render() must be called with a connected parent element."
+        "Widget.render() must be called with a connected parent element."
       );
     }
 

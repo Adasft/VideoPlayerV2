@@ -1,7 +1,7 @@
-import { Controller } from "../../controller.js";
+import { Widget } from "../../widget.js";
 import { SliderProgressBar } from "../common/progress-bar.js";
 
-export class SliderTrack extends Controller {
+export class SliderTrack extends Widget {
   #bars = {
     progress: new SliderProgressBar(),
   };
