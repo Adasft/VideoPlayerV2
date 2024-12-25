@@ -17,6 +17,10 @@ class ChapteredTrack extends SliderTrack {
     return this.#chapter;
   }
 
+  getChapterTitle() {
+    return `E${this.#index + 1} • ${this.#chapter.title}`;
+  }
+
   getIndex() {
     return this.#index;
   }

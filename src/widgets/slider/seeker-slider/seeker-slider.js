@@ -138,7 +138,11 @@ export default class SeekerSlider extends Slider {
     return this.#multiTrackManager !== null;
   }
 
-  refresh({ value, min, max, chapters = [] }) {
+  getCurrentChapter() {
+    return this.track.getChapter?.();
+  }
+
+  onRefresh({ value, min, max, chapters = [] }) {
     this.resetValue();
     this.min = min;
     this.max = max;

@@ -73,9 +73,15 @@ export default class Video extends Widget {
     return this.#isLoop;
   }
 
+  #loopModes = ["none", "infinite", "once"];
+
+  get loopModes() {
+    return this.#loopModes;
+  }
+
   /**
    * Especifica cuantas veces se repite el video si es un loop
-   * @type {"none" | "once" | "infinite"}
+   * @type {"none" | "infinite" | "once"}
    * @default "none"
    */
   #loopMode = "none";
@@ -146,7 +152,7 @@ export default class Video extends Widget {
     });
   }
 
-  refresh({ src, currentTime }) {
+  onRefresh({ src, currentTime }) {
     this.#src = src;
     this.#currentTime = currentTime;
     this.#isPlaying = false;
@@ -173,5 +179,9 @@ export default class Video extends Widget {
 
   exitPictureInPicture() {
     this.component?.exitPictureInPicture();
+  }
+
+  getCurrentLoopMode() {
+    return this.#loopModes.indexOf(this.#loopMode);
   }
 }

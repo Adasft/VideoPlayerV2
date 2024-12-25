@@ -27,6 +27,10 @@ const widgetPaths = {
     widget: "../widgets/video/video.js",
     component: "../widgets/video/video-component.js",
   },
+  videoStatusBar: {
+    widget: "../widgets/video-status-bar/video-status-bar.js",
+    component: "../widgets/video-status-bar/video-status-bar-component.js",
+  },
 };
 
 /**
@@ -146,4 +150,21 @@ export async function createVolumeSlider({ volume }) {
  */
 export async function createVideo(options) {
   return await createWidget(widgetPaths.video, options);
+}
+
+/**
+ * Crea una barra de estado de video, que muestra información sobre el video.
+ * Esta barra se encuentra en la parte inferior de la pantalla y muestra al
+ * seeker del video, el tiempo actual del video y el tiempo total del video.
+ * Ademas, muestra información sobre el video, como el título del video y el
+ * título del capítulo actual. También muestra los botones de control del video,
+ * como los botones de repetición, pantalla completa, picture in picture, etc.
+ *
+ * @param {Object} options - Opciones para la barra de estado del video.
+ * @param {Player} options.player - Objeto del player que se utilizará para mostrar la barra de estado.
+ *
+ * @returns {Promise<VideoStatusBar>}
+ */
+export async function createVideoStatusBar(options) {
+  return await createWidget(widgetPaths.videoStatusBar, options);
 }

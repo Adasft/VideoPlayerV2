@@ -2,6 +2,15 @@ import { Widget } from "../../widget.js";
 import { SliderProgressBar } from "../common/progress-bar.js";
 
 export class SliderTrack extends Widget {
+  /**
+   * Barras del track.
+   *
+   * @type {{
+   *   progress: SliderProgressBar,
+   *   indicator?: SliderProgressBar,
+   *   buffer?: SliderProgressBar
+   * }}
+   */
   #bars = {
     progress: new SliderProgressBar(),
   };

@@ -27,7 +27,7 @@ export default class TextViewComponent extends Component {
 
   createElement() {
     return Dom.elm("div", {
-      class: "slider-text",
+      class: "player-text-view",
     });
   }
 }

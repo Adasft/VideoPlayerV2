@@ -218,7 +218,7 @@ export default class Slider extends Widget {
     this.setValue(0);
   }
 
-  refresh({ value, min, max }) {
+  onRefresh({ value, min, max }) {
     this.#min = min;
     this.#max = max;
     this.setValue(value);

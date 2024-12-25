@@ -22,7 +22,7 @@ export class Wrapper {
   }
 
   #insertChildToParent(child, insertMethod) {
-    if (child.isConnected) {
+    if (!child || child.isConnected) {
       return this;
     }
 

@@ -142,7 +142,7 @@ export default class StepsSlider extends Slider {
     }
   }
 
-  refresh({
+  onRefresh({
     value,
     steps,
     showSteps = this.#showSteps,

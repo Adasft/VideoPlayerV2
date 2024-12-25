@@ -8,71 +8,107 @@
 import * as ui from "./ui/ui-utils.js";
 import { Controls } from "./ui/controls.js";
 import SVGIcons from "./ui/icons.js";
+import Player from "./widgets/player/player.js";
+import PlayerComponent from "./widgets/player/player-component.js";
 
-const video = document.getElementById("video");
-const button = document.getElementById("button");
+// const video = document.getElementById("video");
+// const button = document.getElementById("button");
 
-const controls = new Controls();
+// const controls = new Controls();
 
-controls.defineGroup({
-  name: "buttons",
-  createControl: (options) => ui.createButton(options),
+// controls.defineGroup({
+//   name: "buttons",
+//   createControl: (options) => ui.createButton(options),
+// });
+
+// await controls.buttons.add({
+//   forward: { icon: SVGIcons.FORWARD },
+//   backward: { icon: SVGIcons.BACKWARD },
+// });
+
+// console.log(controls.buttons.forward);
+
+// const createPlaybackButtons = controls.buttons.createWhen(() => !video.paused);
+
+// button.addEventListener("click", () => {
+//   // ui.createSeekerSlider({
+//   //   value: 6,
+//   //   min: 0,
+//   //   max: 10,
+//   //   hoverPadding: 10,
+//   //   chapters: [
+//   //     { start: 0, end: 3 },
+//   //     { start: 3, end: 5 },
+//   //     { start: 5, end: 8 },
+//   //     { start: 8, end: 10 },
+//   //   ],
+//   // }).then((seekerSlider) => {
+//   //   seekerSlider.mount(document.body);
+//   // });
+
+//   // ui.createStepsSlider({
+//   //   value: 6.7,
+//   //   steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
+//   //   showSteps: true,
+//   //   showLabels: true,
+//   // }).then((stepSlider) => {
+//   //   stepSlider.on("valueChanged", (value) => {
+//   //     console.log("valueChanged", value);
+//   //   });
+
+//   //   stepSlider.mount(document.body);
+//   // });
+
+//   // ui.createVolumeSlider({
+//   //   volume: 0.5,
+//   // }).then((volumeSlider) => {
+//   //   volumeSlider.mount(document.body);
+//   // });
+
+//   // console.log(video.isPlaying);
+//   // console.log(video.paused);
+
+//   createPlaybackButtons({
+//     play: { icon: SVGIcons.PLAY },
+//     pause: { icon: SVGIcons.PAUSE },
+//   });
+// });
+
+// // console.log(controls.textViews.title);
+
+// window.controls = controls;
+
+const player = new Player({
+  source: {
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    title: "Este es un video con un titulo",
+    chapters: [
+      { start: 0, end: 200, title: "Chapter 1" },
+      { start: 200, end: 400, title: "Chapter 2" },
+      { start: 400, end: 596.474195, title: "Chapter 3" },
+    ],
+  },
+  width: 800,
+  height: 450,
+  playlist: {
+    loop: true,
+    startIndex: 0,
+    sources: [
+      {
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        title: "Video",
+      },
+      {
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        title: "Video 2",
+      },
+    ],
+  },
 });
 
-controls.buttons.add({
-  forward: { icon: SVGIcons.FORWARD },
-  backward: { icon: SVGIcons.BACKWARD },
-});
+const playerComponent = new PlayerComponent(player);
 
-const createPlaybackButtons = controls.buttons.createWhen(() => !video.paused);
-
-button.addEventListener("click", () => {
-  // ui.createSeekerSlider({
-  //   value: 6,
-  //   min: 0,
-  //   max: 10,
-  //   hoverPadding: 10,
-  //   chapters: [
-  //     { start: 0, end: 3 },
-  //     { start: 3, end: 5 },
-  //     { start: 5, end: 8 },
-  //     { start: 8, end: 10 },
-  //   ],
-  // }).then((seekerSlider) => {
-  //   seekerSlider.mount(document.body);
-  // });
-
-  // ui.createStepsSlider({
-  //   value: 6.7,
-  //   steps: [3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8],
-  //   showSteps: true,
-  //   showLabels: true,
-  // }).then((stepSlider) => {
-  //   stepSlider.on("valueChanged", (value) => {
-  //     console.log("valueChanged", value);
-  //   });
-
-  //   stepSlider.mount(document.body);
-  // });
-
-  // ui.createVolumeSlider({
-  //   volume: 0.5,
-  // }).then((volumeSlider) => {
-  //   volumeSlider.mount(document.body);
-  // });
-
-  // console.log(video.isPlaying);
-  // console.log(video.paused);
-
-  createPlaybackButtons({
-    play: { icon: SVGIcons.PLAY },
-    pause: { icon: SVGIcons.PAUSE },
-  });
-});
-
-// console.log(controls.textViews.title);
-
-window.controls = controls;
+playerComponent.mount(document.body);
 
 // const stepSlider = new StepsSlider({
 //   value: 0,

@@ -13,7 +13,7 @@ class ControlsGroup {
   /**
    * Funcion para crear el control
    *
-   * @type {(options: Object<string, any>) => Widget}
+   * @type {(options: Object<string, any>) => Promise<Widget>}
    */
   #createControl;
 
@@ -58,26 +58,28 @@ class ControlsGroup {
    *
    * @param {string} name Nombre del control
    * @param {Object<string, any>} options Opciones del control
+   * @returns {Promise<Widget>}
    */
-  #defineControl(name, options) {
-    this.createControl(options)
-      .then((control) => {
-        Object.assign(this, { [name]: control });
-      })
-      .catch((error) => {
-        console.error("Error creating control:", error);
-        throw error;
-      });
+  async #defineControl(name, options) {
+    try {
+      const control = await this.createControl(options, name);
+      Object.assign(this, { [name]: control });
+      return control;
+    } catch (error) {
+      console.error("Error creating control:", error);
+      throw error;
+    }
   }
 
   /**
    * Permite agregar controles al grupo
    *
    * @param {Object<string, any>} controls Objeto con las opciones de los controles
+   * @returns {Promise<void>}
    */
-  add(controls) {
+  async add(controls) {
     for (const [name, options] of Object.entries(controls)) {
-      this.#defineControl(name, options);
+      await this.#defineControl(name, options);
     }
   }
 
@@ -114,9 +116,11 @@ class ControlsGroup {
 
 export class Controls {
   #assignGroup(group) {
+    const controlsGroup = new ControlsGroup(group);
     Object.defineProperty(this, group.name, {
-      value: new ControlsGroup(group),
+      value: controlsGroup,
     });
+    return controlsGroup;
   }
 
   /**
@@ -127,118 +131,21 @@ export class Controls {
    * @param {(options: Object<string, any>) => Widget} group.createControl Funcion para crear el control
    */
   defineGroup({ name, createControl }) {
+    if (typeof createControl !== "function") {
+      throw new Error(
+        "Controls.defineGroup() createControl must be a function."
+      );
+    }
+
     if (this.hasOwnProperty(name)) {
       throw new Error(
         `Controls.createGroup() cannot override existing group "${name}".`
       );
     }
 
-    this.#assignGroup({
+    return this.#assignGroup({
       name,
       createControl,
     });
   }
 }
-
-// example
-
-// 1
-// controls
-//   .createIf(() => true)
-//   .do(() => ({
-//     category: "buttons",
-//     name: "play",
-//     widget: new Button({ text: "Button" }),
-//   }));
-
-// // 2
-// controls
-//   .createIf(controls.buttons, () => true)
-//   .do(() => ({
-//     name: "play",
-//     widget: new Button({ text: "Button" }),
-//   }));
-
-// // 3
-// controls.buttons
-//   .createIf(() => true)
-//   .do(() => ({
-//     name: "play",
-//     widget: new Button({ text: "Button" }),
-//   }));
-
-// // 4
-// controls.buttons
-//   .createIf(() => true)
-//   .do(() => ({
-//     name: "play",
-//     options: {
-//       icon: SVGIcons.PLAY,
-//     },
-//   }));
-
-// controls.sliders
-//   .createWhen(() => true)
-//   .configure(() => ({
-//     name: "seeker",
-//     options: {
-//       value: 0,
-//       min: 0,
-//       max: 10,
-//       hoverPadding: 10,
-//       chapters: [
-//         { start: 0, end: 3 },
-//         { start: 3, end: 5 },
-//         { start: 5, end: 8 },
-//         { start: 8, end: 10 },
-//       ],
-//     },
-//   }));
-
-// controls.defineGroup({
-//   name: "buttons",
-//   createControl: options => ui.createButton(options)
-// })
-
-// controls.buttons.add({
-//   play: { icon: SVGIcons.PLAY },
-//   pause: { icon: SVGIcons.PAUSE },
-//   stop: { icon: SVGIcons.STOP },
-// })
-
-// controls.defineGroup({
-//   name: "sliders",
-//   createControl: options => ui.createSeekerSlider(options)
-// })
-
-// controls.sliders.add({
-//   seeker: {
-//     value: 0,
-//     min: 0,
-//     max: 10,
-//     hoverPadding: 10,
-//     chapters: [
-//       { start: 0, end: 3 },
-//       { start: 3, end: 5 },
-//       { start: 5, end: 8 },
-//       { start: 8, end: 10 },
-//     ],
-//   },
-// })
-
-// controls.createGroup("buttons", {
-//   play: ui.createButton({ icon: SVGIcons.PLAY }),
-//   pause: ui.createButton({ icon: SVGIcons.PAUSE }),
-//   stop: ui.createButton({ icon: SVGIcons.STOP }),
-// })
-
-// // uso
-// controls.buttons.play.enabled = true;
-
-// controls.buttons
-//   .createWhen(() => true)
-//   .configure(() => ({
-//     play: { icon: SVGIcons.PLAY },
-//     pause: { icon: SVGIcons.PAUSE },
-//     stop: { icon: SVGIcons.STOP },
-//   }));

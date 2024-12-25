@@ -5,80 +5,53 @@ import { SliderTrackComponent } from "../track/track-component.js";
 import { throttle } from "../../../utils.js";
 
 export default class SliderComponent extends Component {
+  /**
+   * Throttled para recalcular los bounds del slider.
+   *
+   * @type {(func: Function) => void}
+   */
   #throttledBoundsRecalculation;
+
+  /**
+   * Indica si el mouse está dentro del slider.
+   *
+   * @type {boolean}
+   */
   #isMouseEntered = false;
 
+  /**
+   * Instancia del slider.
+   *
+   * @type {Slider}
+   */
+  get slider() {
+    return this.widget;
+  }
+
+  /**
+   * Crea un componente de slider.
+   *
+   * @param {Slider} widget - Instancia del slider.
+   */
   constructor(widget) {
     super(widget);
+
     this.#throttledBoundsRecalculation = throttle(
       this.#recalculateBounds.bind(this),
       1000
     );
+
     this.setOnMount();
     this.#init();
   }
 
-  #init() {
-    const slider = this.widget;
-    this.#setupSliderComponents();
-    this.#bindMouseEvents();
-
-    slider.on("refresh", () => {
-      this.onRefresh();
-    });
-    slider.on("mousePressed", () => {
-      slider.thumb.component.element.addClass("active");
-    });
-    slider.on("dragEnd", () => {
-      slider.thumb.component.element.removeClass("active");
-    });
-  }
-
-  #setupSliderComponents() {
-    this.append(new SliderThumbComponent(this.widget.thumb));
-    this.#appendTracks();
-  }
-
-  #appendTracks() {
-    for (const track of this.widget.tracks) {
-      this.append(new SliderTrackComponent(track));
-    }
-  }
-
-  #recalculateBounds() {
-    const { tracks } = this.widget;
-    for (const track of tracks) {
-      track.component.element.recalculateBounds();
-    }
-    this.element.recalculateBounds();
-  }
-
-  #bindMouseEvents() {
-    this.on("mouseenter", this.onMouseEnter.bind(this));
-    this.on("mouseleave", this.onMouseLeave.bind(this));
-    this.on("mousedown", this.onMouseDown.bind(this));
-  }
-
-  #bindGlobalEvents() {
-    Dom.on(document, "mousemove", this.onMouseMove.bind(this));
-    Dom.on(document, "mouseup", this.onMouseUp.bind(this));
-  }
-
-  #unbindGlobalEvents() {
-    this.widget.isMouseMoving = false;
-    Dom.off(document, "mousemove");
-    Dom.off(document, "mouseup");
-  }
-
   disableHoverEffects(canUnbindGlobalEvents = true) {
-    const { widget: slider } = this;
-
-    if (slider.isHoverGrowthEnabled()) {
-      this.element.removeClass("hover");
+    if (this.slider.isHoverGrowthEnabled()) {
+      this.removeClass("hover");
     }
 
-    if (!slider.showAlwaysThumb()) {
-      slider.thumb.hide();
+    if (!this.slider.showAlwaysThumb()) {
+      this.slider.thumb.hide();
     }
 
     if (canUnbindGlobalEvents) this.#unbindGlobalEvents();
@@ -86,8 +59,8 @@ export default class SliderComponent extends Component {
 
   mousePositionToValue(mouseX) {
     const bounds = this.bounds;
-    const max = this.widget.max;
-    const min = this.widget.min;
+    const max = this.slider.max;
+    const min = this.slider.min;
     return ((mouseX - bounds.x) / bounds.width) * (max - min) + min;
   }
 
@@ -96,7 +69,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseMove({ clientX }) {
-    const { widget: slider } = this;
+    const slider = this.slider;
 
     if (!slider.isMouseMoving) return;
 
@@ -122,7 +95,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseUp({ target }) {
-    const { widget: slider } = this;
+    const slider = this.slider;
 
     if (!this.#isMouseEntered) {
       const closestTarget = target.closest(".slider-container");
@@ -140,11 +113,11 @@ export default class SliderComponent extends Component {
   }
 
   onMouseEnter() {
-    const { widget: slider } = this;
+    const slider = this.slider;
     this.#isMouseEntered = true;
 
     if (slider.isHoverGrowthEnabled()) {
-      this.element.addClass("hover");
+      this.addClass("hover");
     }
 
     if (!slider.showAlwaysThumb()) {
@@ -156,7 +129,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseLeave() {
-    const { widget: slider } = this;
+    const slider = this.slider;
     this.#isMouseEntered = false;
 
     if (slider.isDragging) return;
@@ -165,7 +138,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseDown({ clientX }) {
-    const { widget: slider } = this;
+    const slider = this.slider;
 
     Dom.disableSelection();
     Dom.setCursorPointer();
@@ -178,12 +151,68 @@ export default class SliderComponent extends Component {
   }
 
   onMounted() {
-    this.widget.initializeValue();
+    this.slider.initializeValue();
   }
 
   createElement() {
     return Dom.elm("div", {
       class: "slider-container",
     });
+  }
+
+  #init() {
+    const slider = this.widget;
+
+    this.#setupSliderComponents();
+    this.#bindMouseEvents();
+
+    slider.on("refresh", () => {
+      onRefresh();
+    });
+
+    slider.on("mousePressed", () => {
+      slider.thumb.component.addClass("active");
+    });
+
+    slider.on("dragEnd", () => {
+      slider.thumb.component.removeClass("active");
+    });
+  }
+
+  #setupSliderComponents() {
+    this.append(new SliderThumbComponent(this.slider.thumb));
+    this.#appendTracks();
+  }
+
+  #appendTracks() {
+    const { tracks } = this.slider;
+    for (const track of tracks) {
+      this.append(new SliderTrackComponent(track));
+    }
+  }
+
+  #recalculateBounds() {
+    const { tracks } = this.slider;
+    for (const track of tracks) {
+      track.component.element.recalculateBounds();
+    }
+    this.element.recalculateBounds();
+  }
+
+  #bindMouseEvents() {
+    this.on("mouseenter", this.onMouseEnter.bind(this));
+    this.on("mouseleave", this.onMouseLeave.bind(this));
+    this.on("mousedown", this.onMouseDown.bind(this));
+  }
+
+  #bindGlobalEvents() {
+    Dom.on(document, "mousemove", this.onMouseMove.bind(this));
+    Dom.on(document, "mouseup", this.onMouseUp.bind(this));
+  }
+
+  #unbindGlobalEvents() {
+    this.slider.isMouseMoving = false;
+    Dom.off(document, "mousemove");
+    Dom.off(document, "mouseup");
   }
 }

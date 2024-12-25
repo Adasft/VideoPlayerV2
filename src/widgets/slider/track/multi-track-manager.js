@@ -71,27 +71,32 @@ export class MultiTrackManager {
       return cache.value;
     }
 
-    const newActiveTrack = this.#getActiveTrack(value);
+    const currentActiveTrack = this.#getActiveTrack(value);
 
-    if (newActiveTrack) {
-      this.#updateActiveChapteredTrack(cache, newActiveTrack);
-      return newActiveTrack;
+    if (currentActiveTrack) {
+      this.#updateActiveChapteredTrack(cache, currentActiveTrack);
+      return currentActiveTrack;
     }
 
     return null;
   }
 
-  #updateActiveChapteredTrack(cache, newActiveTrack) {
+  #updateActiveChapteredTrack(cache, currentActiveTrack) {
     const oldActiveTrack = cache.value;
 
-    cache.value = newActiveTrack;
+    cache.value = currentActiveTrack;
     cache.shouldUpdate = false;
 
     this.#rasterizeTracks(cache, oldActiveTrack);
 
+    /**
+     * El evento trackChanged solo se emite cuando el tipo de barra es "progress".
+     * Esto se debe a que si el slider tiene capítulos, el evento trackChanged se emitirá
+     * cuando cambie el track de capítulo, pero no cuando cambie el track de la barra indicadora o de buffer.
+     */
     if (cache.barName === "progress") {
       this.#slider.emit("trackChanged", {
-        currentTrack: newActiveTrack,
+        currentTrack: currentActiveTrack,
         oldTrack: oldActiveTrack,
       });
     }
@@ -103,7 +108,17 @@ export class MultiTrackManager {
       : this.#chapteredTracksList.prev(activeTrack);
   }
 
+  /**
+   * Completa o resetea las barras de un track.
+   *
+   * @param {ChapteredTrack} track - El track al que se le aplicarán las barras.
+   * @param {"progress" | "indicator" | "buffer"} barName - El nombre de la barra.
+   * @param {"complete" | "reset"} mode - El modo de completar o resetear las barras.
+   */
   #resetBars(track, barName, mode) {
+    /**
+     * @type {SliderProgressBar}
+     */
     const bar = track.bars[barName];
     if (!bar) {
       console.warn(`Bar "${barName}" not found in track.`);
@@ -125,7 +140,7 @@ export class MultiTrackManager {
    * Otherwise, it finds the track that matches the value of the slider.
    * If a track is found, it updates the cache with the new track.
    *
-   * @param {"progress" | "buffer"} type - The type of the track to get (e.g., "progress" or "buffer").
+   * @param {"progress" | "indicator" | "buffer"} type - The type of the track to get (e.g., "progress" or "buffer").
    * @param {number} value - The value of the slider.
    * @returns {ChapteredTrack | null} The current track, or null if no track is found.
    */
@@ -150,7 +165,7 @@ export class MultiTrackManager {
    * @param {{
    *  direction: "next" | "prev",
    *  mode: "complete" | "reset",
-   *  barName: "progress" | "buffer",
+   *  barName: "progress" | "indicator" | "buffer",
    *  activeTrack: ChapteredTrack
    * }} options - The options for rasterizing the track bars.
    */

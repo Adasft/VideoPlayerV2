@@ -81,6 +81,12 @@ export class Widget {
     this.#component?.mount(parent);
   }
 
+  onRefresh(config) {
+    this.onRefresh(config);
+  }
+
+  onRefresh() {}
+
   /**
    * Añade un listener a un evento específico del widget.
    * Estos eventos se emiten cuando se realiza una acción específica en el widget y

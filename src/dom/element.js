@@ -105,6 +105,10 @@ export class DomElement extends DomNode {
     this.#cacheBounds = null;
   }
 
+  setHTML(html) {
+    this.node.innerHTML = html;
+  }
+
   disconnect() {
     // Eliminamos todos los eventos relacionados con el elemento
     // para evitar que se ejecuten callbacks innecesariamente.

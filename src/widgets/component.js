@@ -94,8 +94,7 @@ export class Component {
   }
 
   #attachChild(child, parentComponent) {
-    // parentComponent.#children.add(child);
-
+    // console.log("attachChild", child, parentComponent);
     child.parent = parentComponent;
     child.#tiggerLifecycleState(parentComponent.node, Component.ON_APPENDED);
 
@@ -229,6 +228,10 @@ export class Component {
 
     Dom.append(parent, this.node);
     this.#tiggerLifecycleState(parent, Component.ON_MOUNTED);
+  }
+
+  createRef() {
+    return { current: null };
   }
 
   wrapper(tagName, className) {

@@ -1,41 +1,224 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
 :root {
-  /* Tema blanco */
-  --player-theme-slider-bars-color: 0 0 0;
-  --player-theme-slider-track-alpha: 0.15;
-  --player-theme-slider-track-buffer-alpha: 0.1;
-  --player-theme-slider-track-indicator-alpha: 0.1;
-
-  /* Tema oscuro */
-  /* --player-theme-slider-bars-color: 255 255 255;
-  --player-theme-slider-track-alpha: 70%;
-  --player-theme-slider-track-progress-alpha: 80%;
-  --player-theme-slider-track-buffer-alpha: 60%;
-  --player-theme-slider-track-indicator-alpha: 30%; */
-
+  --player-default-icon-size: 23px;
+  --player-icon-color: rgb(255 255 255 / 70%);
+  --player-icon-color-selected: rgb(16, 129, 227);
+  --player-primaty-color: rgb(16, 129, 227);
   --player-slider-thumb-size: 15px;
   --player-slider-step-size: 8px;
   --player-slider-tracks-gap: 2px;
   --player-slider-height: 5px;
   --player-slider-track-border-radius: 3px;
-  --player-slider-track-background: rgb(
-    var(--player-theme-slider-bars-color) /
-      var(--player-theme-slider-track-alpha)
-  );
-  --player-slider-track-progress-background: rgb(16, 129, 227);
-  --player-slider-track-buffer-background: rgb(
-    var(--player-theme-slider-bars-color) /
-      var(--player-theme-slider-track-buffer-alpha)
-  );
-  --player-slider-track-indicator-background: rgb(
-    var(--player-theme-slider-bars-color) /
-      var(--player-theme-slider-track-indicator-alpha)
-  );
+  --player-slider-track-background: rgb(255 255 255 / 30%);
+  --player-slider-track-progress-background: var(--player-primaty-color);
+  --player-slider-track-buffer-background: rgb(255 255 255 / 10%);
+  --player-slider-track-indicator-background: rgb(255 255 255 / 15%);
+  --player-primary-text-color: #dbdbdb;
+  --player-secondary-text-color: #d3d3d3;
+  --player-sm-text: 12px;
+  --player-md-text: 13px;
+  --player-lg-text: 15px;
+  --player-xl-text: 25px;
+}
+
+.player-container {
+  position: relative;
+  background-color: #111;
+  color: #fff;
+
+  button {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+
+    &.player-button-control {
+      transition: all 0.1s;
+
+      &:hover {
+        --player-icon-color: #fff;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.9);
+      }
+
+      &:disabled,
+      &[disabled],
+      &.disabled {
+        opacity: 0.5;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      svg {
+        transition: all 0.3s;
+      }
+
+      &,
+      svg {
+        width: var(--player-default-icon-size);
+        height: var(--player-default-icon-size);
+      }
+
+      &.selected {
+        --player-icon-color: #fff;
+        position: relative;
+        &:before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -5px;
+          margin: auto;
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background-color: var(--player-icon-color-selected);
+        }
+
+        &.outline-icon {
+          stroke-width: 2.5px;
+        }
+      }
+
+      &.filled-icon svg {
+        fill: var(--player-icon-color);
+      }
+
+      &.outline-icon svg {
+        stroke: var(--player-icon-color);
+      }
+    }
+  }
+
+  .player-text-view {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+  }
+
+  .player-video-container {
+    width: 100%;
+    height: 100%;
+
+    video {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  .video-status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 5;
+    padding: 0px 40px 15px;
+
+    &::after,
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 160%;
+      pointer-events: none;
+      z-index: -1;
+      transition: all 0.2s;
+    }
+
+    &::before {
+      mask-image: linear-gradient(to top, black, black, transparent);
+      backdrop-filter: blur(0px);
+    }
+
+    &::after {
+      background: transparent;
+    }
+
+    &.show {
+      &::before {
+        backdrop-filter: blur(30px);
+      }
+
+      &::after {
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.9) 0%,
+          rgba(0, 0, 0, 0.6) 35%,
+          rgba(0, 0, 0, 0.1) 90%,
+          rgba(0, 0, 0, 0) 100%
+        );
+      }
+    }
+
+    .video-status-wrapper {
+      display: flex;
+      gap: 20px;
+
+      .video-title-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-width: 0;
+
+        .video-title {
+          height: 30px;
+          font-size: var(--player-xl-text);
+          font-weight: bold;
+          color: var(--player-primary-text-color);
+        }
+
+        .video-chapter-title {
+          margin-bottom: 3px;
+          font-size: var(--player-lg-text);
+          color: var(--player-secondary-text-color);
+          position: relative;
+        }
+      }
+
+      .video-status-controls-wrapper {
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+    }
+
+    .video-timeline-wrapper {
+      margin-top: 15px;
+
+      .video-seeker-wrapper {
+        margin-bottom: 10px;
+      }
+
+      .video-time-display-wrapper {
+        display: flex;
+        justify-content: space-between;
+
+        .player-text-view {
+          font-size: var(--player-sm-text);
+          font-weight: bold;
+          color: var(--player-secondary-text-color);
+        }
+      }
+    }
+  }
 }
 
 .slider-container {
-  margin-top: 100px;
   position: relative;
-  width: 400px;
+  width: 100%;
   height: var(--player-slider-height);
   display: flex;
   align-items: center;
@@ -120,7 +303,6 @@
   }
 
   .slider-track {
-    height: 100%;
     position: relative;
     transition: transform 0.2s;
 
@@ -135,6 +317,7 @@
 
     .slider-progress-bars-wrapper {
       height: 100%;
+      height: var(--player-slider-height);
       position: relative;
       overflow: hidden;
       border-radius: var(--player-slider-track-border-radius);

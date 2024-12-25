@@ -5,52 +5,60 @@ import { Component } from "../component.js";
 export default class ButtonComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.init();
+    this.#init();
   }
 
-  #setIcon(icon) {
-    this.element.innerHTML = icon.getHTML();
-  }
-
-  #handleClickEvent = () => {
+  onClick = () => {
     this.widget.emit("click");
   };
 
-  init() {
-    if (this.widget.hasIcon) {
-      this.#setIcon(this.widget.icon);
-      this.widget.on("iconChange", (icon) => {
-        this.#setIcon(icon);
-      });
+  onEnabledChange(isEnabled) {
+    this.node.disabled = !isEnabled;
+    if (isEnabled) {
+      this.on("click", this.onClick);
+      this.removeClass("disabled");
+    } else {
+      this.off("click", this.onClick);
+      this.addClass("disabled");
     }
+  }
 
-    this.addClass(this.widget.isFilled ? "filled-icon" : "outline-icon");
+  onSelectedChange(isSelected) {
+    if (isSelected) {
+      this.addClass("selected");
+    } else {
+      this.removeClass("selected");
+    }
+  }
 
-    this.on("click", this.#handleClickEvent);
-
-    this.widget.on("enabledChange", (isEnabled) => {
-      this.node.disabled = !isEnabled;
-      if (isEnabled) {
-        this.on("click", this.#handleClickEvent);
-        this.removeClass("disabled");
-      } else {
-        this.off("click", this.#handleClickEvent);
-        this.addClass("disabled");
-      }
-    });
-
-    this.widget.on("selectedChange", (isSelected) => {
-      if (isSelected) {
-        this.addClass("selected");
-      } else {
-        this.removeClass("selected");
-      }
-    });
+  onIconChange(icon) {
+    this.#setIcon(icon);
   }
 
   createElement() {
     return Dom.elm("button", {
       class: "player-button-control",
     });
+  }
+
+  #setIcon(icon) {
+    this.element.setHTML(icon.getHTML());
+  }
+
+  #init() {
+    const button = this.widget;
+
+    if (button.hasIcon) {
+      this.#setIcon(button.icon);
+
+      button.on("iconChange", this.onIconChange.bind(this));
+    }
+
+    this.addClass(button.isFilled ? "filled-icon" : "outline-icon");
+
+    button.on("enabledChange", this.onEnabledChange.bind(this));
+    button.on("selectedChange", this.onSelectedChange.bind(this));
+
+    this.on("click", this.onClick);
   }
 }
