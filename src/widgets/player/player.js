@@ -11,6 +11,7 @@ class PlayerControls {
     createOrDestroyPlaylistControls: noop,
     createOrDestroyChaptersControls: noop,
     createOrDestroyChapterTitle: noop,
+    createOrDestroyVolumeSlider: noop,
   };
 
   get controls() {
@@ -35,7 +36,7 @@ class PlayerControls {
   }
 
   createOrDestroyPlaylistControls() {
-    this.#conditionalControls.createOrDestroyPlaylistControls({
+    return this.#conditionalControls.createOrDestroyPlaylistControls({
       prev: { icon: SVGIcons.BACKWARD },
       next: { icon: SVGIcons.FORWARD },
       playlist: { icon: SVGIcons.PLAYLIST },
@@ -43,26 +44,38 @@ class PlayerControls {
   }
 
   createOrDestroyChaptersControls() {
-    this.#conditionalControls.createOrDestroyChaptersControls({
+    return this.#conditionalControls.createOrDestroyChaptersControls({
       chapters: { icon: SVGIcons.CHAPTERS },
     });
   }
 
   createOrDestroyChapterTitle() {
-    this.#conditionalControls.createOrDestroyChapterTitle({
+    return this.#conditionalControls.createOrDestroyChapterTitle({
       chapterTitle: { text: this.player.getCurrentChapterTitle() },
     });
   }
 
+  createOrDestroyVolumeSlider() {
+    return this.#conditionalControls.createOrDestroyVolumeSlider({
+      volume: { value: this.player.volume },
+    });
+  }
+
+  #getSkipTimeIcon(skipTime, suffix) {
+    return SVGIcons[`SKIP_${skipTime}_${suffix}`];
+  }
+
   #createButtonGroupControls() {
+    const skipTime = this.player.skipTime;
+
     const controls = {
       play: { icon: SVGIcons.PLAY },
-      volume: { icon: SVGIcons.VOLUME },
+      volume: { icon: SVGIcons.VOLUME_HIGH },
       repeat: { icon: SVGIcons.REPEAT },
       shuffle: { icon: SVGIcons.SHUFFLE },
       fullscreen: { icon: SVGIcons.FULLSCREEN },
-      skipBack: { icon: SVGIcons.SKIP_BACK },
-      skipForward: { icon: SVGIcons.SKIP_FORWARD },
+      skipBack: { icon: this.#getSkipTimeIcon(skipTime, "BACK") },
+      skipForward: { icon: this.#getSkipTimeIcon(skipTime, "FORWARD") },
       pictureInPicture: { icon: SVGIcons.PICTURE_IN_PICTURE },
       speed: { icon: SVGIcons.SPEED },
     };
@@ -149,6 +162,8 @@ class PlayerControls {
       this.buttons.createWhen(() => this.player.hasChapters());
     this.#conditionalControls.createOrDestroyChapterTitle =
       this.textViews.createWhen(() => this.player.hasChapters());
+    this.#conditionalControls.createOrDestroyVolumeSlider =
+      this.sliders.createWhen(() => this.player.hasAudio);
   }
 
   async createControls() {
@@ -167,6 +182,9 @@ class PlayerControls {
 }
 
 export default class Player extends Widget {
+  static #VALID_SKIP_TIMES = [5, 10, 15, 20];
+  static #DEFAULT_SKIP_TIME = 5;
+
   #currentSource;
   #width;
   #height;
@@ -176,12 +194,50 @@ export default class Player extends Widget {
   #loop;
   #skipTime;
   #playlist;
-  #isRandomPlaybackActive;
+  #isRandomPlaybackActive = false;
+  #isControlsReady = false;
 
   #video;
   #videoStatusBar;
-
+  #playbackControls;
+  #loader;
+  #volumeControl;
   #controls;
+
+  constructor({
+    source,
+    width = 400,
+    height = 400,
+    autoplay = false,
+    volume = 1,
+    muted = false,
+    loop = false,
+    skipTime = Player.#DEFAULT_SKIP_TIME,
+    playlist,
+  }) {
+    super();
+
+    this.#width = width;
+    this.#height = height;
+    this.#autoplay = autoplay;
+    this.#volume = volume;
+    this.#muted = muted;
+    this.#loop = loop;
+    this.#skipTime = this.#normalizeSkipTime(skipTime);
+
+    this.#initializeLoader();
+
+    if (playlist) {
+      this.once("playlistReady", () => {
+        this.#initializeVideo();
+      });
+    }
+
+    this.on("sourceChange", this.#onSourceChange.bind(this));
+    this.once("videoReady", this.#onVideoReady.bind(this));
+
+    this.#initializeMedia(source, playlist);
+  }
 
   get controls() {
     return this.#controls;
@@ -201,6 +257,18 @@ export default class Player extends Widget {
     return this.#videoStatusBar;
   }
 
+  get playbackControls() {
+    return this.#playbackControls;
+  }
+
+  get loader() {
+    return this.#loader;
+  }
+
+  get volumeControl() {
+    return this.#volumeControl;
+  }
+
   get width() {
     return this.#width;
   }
@@ -209,7 +277,7 @@ export default class Player extends Widget {
     return this.#height;
   }
 
-  get getDuration() {
+  get duration() {
     return this.video.duration;
   }
 
@@ -219,6 +287,27 @@ export default class Player extends Widget {
 
   get currentTime() {
     return this.video.currentTime;
+  }
+
+  set volume(volume) {
+    this.video.volume = volume;
+  }
+
+  get volume() {
+    return this.video.volume;
+  }
+
+  set muted(isMuted) {
+    this.#muted = isMuted;
+    this.video.muted = isMuted;
+  }
+
+  get muted() {
+    return this.video.muted;
+  }
+
+  get hasAudio() {
+    return this.video.hasAudio;
   }
 
   set isRandomPlaybackActive(isRandomPlaybackActive) {
@@ -245,56 +334,13 @@ export default class Player extends Widget {
     return this.#autoplay;
   }
 
-  constructor({
-    source,
-    width = 400,
-    height = 400,
-    autoplay = false,
-    volume = 1,
-    muted = false,
-    loop = false,
-    skipTime = 5,
-    playlist,
-  }) {
-    super();
-
-    this.#width = width;
-    this.#height = height;
-    this.#autoplay = autoplay;
-    this.#volume = volume;
-    this.#muted = muted;
-    this.#loop = loop;
-    this.#skipTime = skipTime;
-
-    if (playlist) {
-      this.once("playlistReady", () => {
-        this.#initializeVideo();
-      });
-    }
-
-    this.once("videoReady", async () => {
-      this.#controls = new PlayerControls(this);
-      await this.#controls.createControls();
-      await this.#initializeVideoStatusBar();
-      this.emit("controlsReady");
-    });
-
-    this.#initializeMedia(source, playlist);
+  get isPlaying() {
+    return this.#video.isPlaying;
   }
 
-  onLoadedMetaData() {
-    if (this.#videoStatusBar) {
-      this.#videoStatusBar.refresh();
-    }
-
-    this.emit("videoReady");
+  get playlist() {
+    return this.#playlist;
   }
-
-  onTimeUpdate(time) {
-    this.controls.sliders.seeker.setValue(time);
-  }
-
-  onProgress() {}
 
   hasPlaylist() {
     return !!this.#playlist;
@@ -313,19 +359,40 @@ export default class Player extends Widget {
   }
 
   getCurrentChapter() {
+    if (!this.#isControlsReady) return null;
     return this.controls.sliders.seeker.getCurrentChapter();
   }
 
   getCurrentChapterTitle() {
+    if (!this.#isControlsReady) return "";
     return this.#controls.sliders.seeker.track.getChapterTitle?.() ?? "";
   }
 
   play() {
-    this.video.play();
+    return this.video.play();
   }
 
   pause() {
-    this.video.pause();
+    return this.video.pause();
+  }
+
+  skipBack() {
+    this.video.currentTime -= this.#skipTime;
+  }
+
+  skipForward() {
+    this.video.currentTime += this.#skipTime;
+  }
+
+  #normalizeSkipTime(skipTime) {
+    if (!Player.#VALID_SKIP_TIMES.includes(skipTime)) {
+      return Player.#DEFAULT_SKIP_TIME;
+    }
+    return skipTime;
+  }
+
+  async #initializeLoader() {
+    this.#loader = await ui.createLoader();
   }
 
   #initializeMedia(source, playlist) {
@@ -403,14 +470,100 @@ export default class Player extends Widget {
     });
   }
 
+  async #initializePlaybackControls() {
+    this.#playbackControls = await ui.createPlaybackControls({
+      player: this,
+    });
+  }
+
+  async #initializeVolumeControl() {
+    this.#volumeControl = await ui.createVolumeControl({
+      player: this,
+    });
+  }
+
   #setupVideoEvents() {
-    this.#video.on("loadedMetaData", this.onLoadedMetaData.bind(this));
-    this.#video.on("timeUpdate", this.onTimeUpdate.bind(this));
+    this.#video.on("loadedMetaData", this.#onLoadedMetaData.bind(this));
+    this.#video.on("timeUpdate", this.#onTimeUpdate.bind(this));
+    this.#video.on("progress", this.#onProgress.bind(this));
+    this.#video.on("play", this.#onPlay.bind(this));
+    this.#video.on("pause", this.#onPause.bind(this));
+    this.#video.on("waiting", this.#onWaiting.bind(this));
+    this.#video.on("playing", this.#onPlaying.bind(this));
   }
 
   #isValidSource(source) {
     return (
       source && typeof source === "object" && typeof source.src === "string"
     );
+  }
+
+  #onSourceChange(source) {
+    this.video.refresh({ src: source.src, currentTime: source.currentTime });
+
+    if (this.#autoplay) {
+      this.play();
+    } else {
+      this.play().then(() => {
+        this.pause();
+      });
+    }
+  }
+
+  async #onVideoReady() {
+    this.#controls = new PlayerControls(this);
+    await this.#controls.createControls();
+    await this.#initializeVideoStatusBar();
+    await this.#initializePlaybackControls();
+    await this.#initializeVolumeControl();
+    this.#isControlsReady = true;
+
+    if (this.#autoplay) {
+      this.play();
+    }
+
+    this.emit("controlsReady");
+  }
+
+  #onLoadedMetaData() {
+    if (this.#videoStatusBar) {
+      this.#videoStatusBar.refresh();
+    }
+
+    this.emit("videoReady");
+  }
+
+  #onTimeUpdate(time) {
+    if (!this.#isControlsReady) return;
+
+    this.controls.textViews.currentTime.text = formatTime(time);
+    this.controls.sliders.seeker.setValue(time);
+  }
+
+  #onProgress(progress) {
+    if (!this.#isControlsReady) return null;
+    this.controls.sliders.seeker.setBufferProgress(progress);
+  }
+
+  #onPlay() {
+    if (!this.#isControlsReady) return;
+    this.controls.buttons.play.icon = SVGIcons.PAUSE;
+  }
+
+  #onPause() {
+    if (!this.#isControlsReady) return;
+    this.controls.buttons.play.icon = SVGIcons.PLAY;
+  }
+
+  #onWaiting() {
+    if (!this.#isControlsReady) return;
+    this.controls.buttons.play.hide();
+    this.loader.show();
+  }
+
+  #onPlaying() {
+    if (!this.#isControlsReady) return;
+    this.controls.buttons.play.show();
+    this.loader.hide();
   }
 }

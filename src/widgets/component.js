@@ -1,6 +1,7 @@
 import { DomElement } from "../dom/element.js";
 import { Wrapper } from "./wrapper.js";
 import { Dom } from "../dom/dom-utils.js";
+import { getRandomId } from "../utils.js";
 
 export class Component {
   /**
@@ -21,17 +22,6 @@ export class Component {
    * @type {Map<"onMounted" | "onAppended", Set<Component> | undefined> | undefined}
    */
   static #lifecycleStates;
-
-  /**
-   * Widget that manages the component.
-   *
-   * @type {Widget}
-   */
-  #widget;
-
-  get widget() {
-    return this.#widget;
-  }
 
   /**
    * DOM element that represents the component.
@@ -80,22 +70,33 @@ export class Component {
   }
 
   constructor(widget) {
-    this.#widget = widget;
+    widget.component = this;
+
+    this.id = `${widget.name}-${getRandomId()}`;
+
+    // Se define el nombre de la propiedad con la cual se podrá acceder al widget
+    // de la instancia de la clase. Por ejemplo, si el nombre del widget es Player,
+    // el nombre de la propiedad será "player". Y su acceso será `this.player`.
+    // En caso existir un error al obtener el nombre del widget, se utilizará el
+    // nombre "widget" como nombre de la propiedad.
+    Object.defineProperty(this, widget.name ?? "widget", {
+      get: () => widget,
+    });
+
     const element = this.createElement();
     if (!element || !(element instanceof DomElement)) {
       throw new Error("Component.createElement() must return a DomElement.");
     }
+
     this.#element = element;
 
-    if (this.widget) {
-      this.widget.component = this;
-      this.widget.on("destroy", () => this.destroy());
-    }
+    widget.on("destroy", () => this.destroy());
   }
 
   #attachChild(child, parentComponent) {
     // console.log("attachChild", child, parentComponent);
     child.parent = parentComponent;
+    // console.log("attachChild", child.isConnected, parentComponent);
     child.#tiggerLifecycleState(parentComponent.node, Component.ON_APPENDED);
 
     if (parentComponent.isConnected) {
@@ -202,12 +203,24 @@ export class Component {
    *
    * @param {Component | Wrapper} parent - The parent element or wrapper to append the component to.
    */
-  appendTo(parent) {
+  insertTo(parent, insertMethod) {
     const parentElement = parent.element;
     const parentComponent =
       parent instanceof Component ? parent : parent.getParentComponent();
-    parentElement.append([this.element]);
+    // parentElement.append([this.element]);
+    // console.log("insertTo", parentElement, this.element, insertMethod);
+    // insertMethod(parentElement, this.element);
+    if (insertMethod === "append") {
+      parentElement.append([this.element]);
+    } else if (insertMethod === "prepend") {
+      parentElement.prepend([this.element]);
+    }
     this.#attachChild(this, parentComponent);
+  }
+
+  appendWrapper(...wrapper) {
+    const wrapperElements = wrapper.map((wrapper) => wrapper.element);
+    this.element.append(wrapperElements);
   }
 
   /**

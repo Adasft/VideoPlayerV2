@@ -1,5 +1,5 @@
 import { Component } from "../component.js";
-import { Dom } from "../../dom-utils/dom.js";
+import { Dom } from "../../dom/dom-utils.js";
 
 export default class LoaderComponent extends Component {
   constructor(widget) {
@@ -8,7 +8,7 @@ export default class LoaderComponent extends Component {
   }
 
   #init() {
-    this.widget.on("visibilityChange", (isVisible) => {
+    this.loader.on("visibilityChange", (isVisible) => {
       this.css({
         display: isVisible ? "block" : "none",
       });

@@ -1,6 +1,6 @@
 import Slider from "../common/slider.js";
 import { MultiTrackManager } from "../track/multi-track-manager.js";
-import { SliderProgressBar } from "../common/progress-bar.js";
+import { ProgressBar } from "../common/progress-bar.js";
 
 export default class SeekerSlider extends Slider {
   /**
@@ -70,6 +70,7 @@ export default class SeekerSlider extends Slider {
   }
 
   #createMultiTrackManager(chapters) {
+    this.track?.destroy();
     this.#multiTrackManager?.clearTracks();
     this.#multiTrackManager = new MultiTrackManager({
       slider: this,
@@ -87,8 +88,8 @@ export default class SeekerSlider extends Slider {
       this.track = this.#multiTrackManager.chapteredTracksList;
     } else {
       super.createTrack();
-      this.track.addBar(new SliderProgressBar("indicator"));
-      this.track.addBar(new SliderProgressBar("buffer"));
+      this.track.addBar(new ProgressBar("indicator"));
+      this.track.addBar(new ProgressBar("buffer"));
     }
   }
 
@@ -98,7 +99,7 @@ export default class SeekerSlider extends Slider {
    * @param {number} value - The indicator value to set.
    */
   setIndicatorValue(value) {
-    this.#indicatorValue = value;
+    this.#indicatorValue = this.clampValue(value);
     if (!this.indicatorTrack) return;
     const relativeProgress = this.indicatorTrack.calculateRelativeProgress(
       value / this.max
@@ -149,8 +150,10 @@ export default class SeekerSlider extends Slider {
 
     if (chapters.length > 0) {
       this.#createMultiTrackManager(chapters);
-    } else {
+    } else if (this.#multiTrackManager) {
       this.#resetMultiTrackManager();
+    } else {
+      this.track.destroy();
     }
 
     this.createTrack();

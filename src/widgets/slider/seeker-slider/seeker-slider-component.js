@@ -8,11 +8,11 @@ export default class SeekerSliderComponent extends SliderComponent {
 
   #init() {
     this.#toggleChaptersClass();
-    this.widget.on("trackChanged", this.onTrackChanged.bind(this));
+    this.slider.on("trackChanged", this.onTrackChanged.bind(this));
   }
 
   #resetIndicatorTrackBars() {
-    const { widget: slider } = this;
+    const { slider } = this;
 
     if (slider.hasChapters()) {
       slider.multiTrackManager.rasterizeTrackBar({
@@ -27,21 +27,21 @@ export default class SeekerSliderComponent extends SliderComponent {
   }
 
   #toggleChaptersClass() {
-    this.element.toggleClass("has-chapters", this.widget.hasChapters());
+    this.element.toggleClass("has-chapters", this.slider.hasChapters());
   }
 
   disableHoverEffects(canUnbindGlobalEvents = true) {
     super.disableHoverEffects(canUnbindGlobalEvents);
-    this.widget.track.component.element.removeClass("active");
+    this.slider.track.component.element.removeClass("active");
   }
 
   onRefresh() {
-    this.onRefresh();
+    super.onRefresh();
     this.#toggleChaptersClass();
   }
 
   onTrackChanged({ currentTrack, oldTrack }) {
-    const { isDragging } = this.widget;
+    const { isDragging } = this.slider;
     if (!isDragging) return;
     currentTrack.component.element.addClass("active");
     oldTrack?.component.element.removeClass("active");

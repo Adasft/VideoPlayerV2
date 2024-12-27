@@ -2,7 +2,7 @@ import { Component } from "../component.js";
 import { Dom } from "../../dom/dom-utils.js";
 
 export default class VideoStatusBarComponent extends Component {
-  #ref = {
+  #refs = {
     videoTitleWrapper: this.createRef(),
     videoStatusControlsWrapper: this.createRef(),
   };
@@ -10,6 +10,17 @@ export default class VideoStatusBarComponent extends Component {
   constructor(widget) {
     super(widget);
     this.#init();
+  }
+
+  onRefresh() {
+    const { buttons } = this.videoStatusBar.controls;
+
+    this.#refs.videoTitleWrapper.current.prepend(
+      this.#prepareChapterTitleForInsertion()
+    );
+    this.#refs.videoStatusControlsWrapper.current.prepend(
+      buttons.chapters?.component
+    );
   }
 
   createElement() {
@@ -20,28 +31,35 @@ export default class VideoStatusBarComponent extends Component {
 
   #init() {
     this.addClass("show");
-    this.element.append([
-      this.#createVideoStatusWrapper().element,
-      this.#createVideoTimelineWrapper().element,
-    ]);
+    this.appendWrapper(
+      this.#createVideoStatusWrapper(),
+      this.#createVideoTimelineWrapper()
+    );
+
+    this.videoStatusBar.on("refresh", this.onRefresh.bind(this));
+  }
+
+  #prepareChapterTitleForInsertion() {
+    const { textViews } = this.videoStatusBar.controls;
+    const chapterTitleComponent = textViews.chapterTitle?.component;
+    chapterTitleComponent?.addClass("video-chapter-title");
+    return chapterTitleComponent;
   }
 
   #createVideoTitleWrapper() {
-    const { textViews } = this.widget.controls;
+    const { textViews } = this.videoStatusBar.controls;
     const titleComponent = textViews.title.component;
-    const chapterTitleComponent = textViews.chapterTitle?.component;
 
     titleComponent.addClass("video-title");
-    chapterTitleComponent?.addClass("video-chapter-title");
 
     return this.wrapper("div", "video-title-wrapper")
-      .add(chapterTitleComponent)
+      .add(this.#prepareChapterTitleForInsertion())
       .add(titleComponent)
-      .toRef(this.#ref.videoTitleWrapper);
+      .toRef(this.#refs.videoTitleWrapper);
   }
 
   #createVideoStatusControlsWrapper() {
-    const { buttons } = this.widget.controls;
+    const { buttons } = this.videoStatusBar.controls;
     return this.wrapper("div", "video-status-controls-wrapper")
       .add(buttons.chapters?.component)
       .add(buttons.playlist?.component)
@@ -50,7 +68,7 @@ export default class VideoStatusBarComponent extends Component {
       .add(buttons.speed.component)
       .add(buttons.pictureInPicture.component)
       .add(buttons.fullscreen.component)
-      .toRef(this.#ref.videoStatusControlsWrapper);
+      .toRef(this.#refs.videoStatusControlsWrapper);
   }
 
   #createVideoStatusWrapper() {
@@ -61,12 +79,12 @@ export default class VideoStatusBarComponent extends Component {
 
   #createVideoSeekerWrapper() {
     return this.wrapper("div", "video-seeker-wrapper").add(
-      this.widget.controls.sliders.seeker.component
+      this.videoStatusBar.controls.sliders.seeker.component
     );
   }
 
   #createVideoTimeDisplayWrapper() {
-    const { textViews } = this.widget.controls;
+    const { textViews } = this.videoStatusBar.controls;
     return this.wrapper("div", "video-time-display-wrapper")
       .add(textViews.currentTime.component)
       .add(textViews.duration.component);

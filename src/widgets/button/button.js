@@ -70,4 +70,12 @@ export default class Button extends Widget {
   get selected() {
     return this.#isSelected;
   }
+
+  show() {
+    this.emit("visibilityChange", true);
+  }
+
+  hide() {
+    this.emit("visibilityChange", false);
+  }
 }

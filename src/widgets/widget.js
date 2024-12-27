@@ -52,6 +52,15 @@ export class Widget {
    */
   #component;
 
+  #name;
+
+  constructor(name = null) {
+    const widgetName = name ?? this.constructor.name;
+    this.#name = name
+      ? name
+      : widgetName.charAt().toLowerCase() + widgetName.slice(1);
+  }
+
   set component(component) {
     if (this.#component) {
       return;
@@ -63,7 +72,9 @@ export class Widget {
     return this.#component;
   }
 
-  constructor() {}
+  get name() {
+    return this.#name;
+  }
 
   /**
    * Destruye el widget y su componente.
@@ -81,7 +92,7 @@ export class Widget {
     this.#component?.mount(parent);
   }
 
-  onRefresh(config) {
+  refresh(config) {
     this.onRefresh(config);
   }
 

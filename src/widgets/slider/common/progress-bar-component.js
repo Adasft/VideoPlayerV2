@@ -8,13 +8,13 @@ export class SliderProgressBarComponent extends Component {
   }
 
   #init() {
-    this.widget.on("progressUpdate", (progress) => {
+    this.progressBar.on("progressUpdate", (progress) => {
       this.css({
         width: `${progress * 100}%`,
       });
     });
 
-    this.element.addClass(this.widget.getName());
+    this.element.addClass(this.progressBar.getName());
   }
 
   createElement() {

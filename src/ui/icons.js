@@ -84,26 +84,86 @@ const SVG_FORWARD_ICON = /* html */ `
 </svg>
 `;
 
-const SVG_SKIP_BACK_ICON = /* html */ `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="3 3 18 18" fill="none" stroke="currentColor"
+const SVG_SKIP_FORWARD_5_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-  class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-back-up-double">
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-5">
   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-  <path d="M13 14l-4 -4l4 -4" />
-  <path d="M8 14l-4 -4l4 -4" />
-  <path d="M9 10h7a4 4 0 1 1 0 8h-1" />
-</svg>
+  <path d="M9 18a6 6 0 1 1 0 -12h11" />
+  <path d="M13 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+  <path d="M17 9l3 -3l-3 -3" /></svg>`;
+
+const SVG_SKIP_FORWARD_10_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M17 9l3 -3l-3 -3" />
+  <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
+  <path d="M12 14v6" />
+  <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" /></svg>`;
+
+const SVG_SKIP_FORWARD_15_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-15">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M17 9l3 -3l-3 -3" />
+  <path d="M9 18a6 6 0 1 1 0 -12h11" />
+  <path d="M16 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+  <path d="M13 14v6" /></svg>`;
+
+const SVG_SKIP_FORWARD_20_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-20">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M5.007 16.478a6 6 0 0 1 3.993 -10.478h11" />
+  <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+  <path d="M17 9l3 -3l-3 -3" />
+  <path d="M9 14h2a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v1a1 1 0 0 0 1 1h2" /></svg>`;
+
+const SVG_SKIP_BACK_5_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-5">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M15 18a6 6 0 1 0 0 -12h-11" />
+  <path d="M7 9l-3 -3l3 -3" />
+  <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" /></svg>
 `;
 
-const SVG_SKIP_FORWARD_ICON = /* html */ `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="3 3 18 18" fill="none" stroke="currentColor"
+const SVG_SKIP_BACK_10_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
   stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-  class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-forward-up-double">
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10">
   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-  <path d="M11 14l4 -4l-4 -4" />
-  <path d="M16 14l4 -4l-4 -4" />
-  <path d="M15 10h-7a4 4 0 1 0 0 8h1" />
-</svg>
+  <path d="M7 9l-3 -3l3 -3" />
+  <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
+  <path d="M6 14v6" />
+  <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" /></svg>
+`;
+
+const SVG_SKIP_BACK_15_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-15">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+  <path d="M15 18a6 6 0 1 0 0 -12h-11" />
+  <path d="M5 14v6" />
+  <path d="M7 9l-3 -3l3 -3" /></svg>
+`;
+
+const SVG_SKIP_BACK_20_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-20">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M19.007 16.466a6 6 0 0 0 -4.007 -10.466h-11" />
+  <path d="M7 9l-3 -3l3 -3" />
+  <path d="M12 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+  <path d="M6 14h2a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v1a1 1 0 0 0 1 1h2" /></svg>
 `;
 
 const SVG_PAUSE_ICON = /* html */ `
@@ -213,7 +273,7 @@ export class SVGIcon {
 }
 
 export default class SVGIcons {
-  static VOLUME = new SVGIcon(SVG_VOLUME_ICON);
+  static VOLUME_HIGH = new SVGIcon(SVG_VOLUME_ICON);
 
   static VOLUME_MUTED = new SVGIcon(SVG_VOLUME_MUTED_ICON);
 
@@ -231,9 +291,21 @@ export default class SVGIcons {
 
   static FORWARD = new SVGIcon(SVG_FORWARD_ICON, true);
 
-  static SKIP_BACK = new SVGIcon(SVG_SKIP_BACK_ICON);
+  static SKIP_5_BACK = new SVGIcon(SVG_SKIP_BACK_5_ICON);
 
-  static SKIP_FORWARD = new SVGIcon(SVG_SKIP_FORWARD_ICON);
+  static SKIP_5_FORWARD = new SVGIcon(SVG_SKIP_FORWARD_5_ICON);
+
+  static SKIP_10_BACK = new SVGIcon(SVG_SKIP_BACK_10_ICON);
+
+  static SKIP_10_FORWARD = new SVGIcon(SVG_SKIP_FORWARD_10_ICON);
+
+  static SKIP_15_BACK = new SVGIcon(SVG_SKIP_BACK_15_ICON);
+
+  static SKIP_15_FORWARD = new SVGIcon(SVG_SKIP_FORWARD_15_ICON);
+
+  static SKIP_20_BACK = new SVGIcon(SVG_SKIP_BACK_20_ICON);
+
+  static SKIP_20_FORWARD = new SVGIcon(SVG_SKIP_FORWARD_20_ICON);
 
   static PAUSE = new SVGIcon(SVG_PAUSE_ICON, true);
 

@@ -22,12 +22,13 @@ export class Wrapper {
   }
 
   #insertChildToParent(child, insertMethod) {
+    console.log("insertChildToParent", child, child?.isConnected);
     if (!child || child.isConnected) {
       return this;
     }
 
     if (child instanceof Component) {
-      child.appendTo(this);
+      child.insertTo(this, insertMethod === Dom.append ? "append" : "prepend");
     } else {
       insertMethod(this.#element.node, child.#element.node);
     }

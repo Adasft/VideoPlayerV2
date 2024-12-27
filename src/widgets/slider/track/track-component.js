@@ -1,7 +1,6 @@
 import { Component } from "../../component.js";
 import { Dom } from "../../../dom/dom-utils.js";
 import { SliderProgressBarComponent } from "../common/progress-bar-component.js";
-// import { SeekerSlider } from "../seeker-slider/seeker-slider.js";
 
 export class SliderTrackComponent extends Component {
   constructor(widget) {
@@ -12,7 +11,7 @@ export class SliderTrackComponent extends Component {
 
   #createProgressBarsWrapper() {
     const wrapper = this.wrapper("div", "slider-progress-bars-wrapper");
-    const { bars } = this.widget;
+    const { bars } = this.track;
 
     for (const [, bar] of Object.entries(bars)) {
       wrapper.add(new SliderProgressBarComponent(bar));
@@ -27,7 +26,7 @@ export class SliderTrackComponent extends Component {
   }
 
   #init() {
-    const { widget: track } = this;
+    const { track } = this;
 
     this.element.append([this.#createProgressBarsWrapper()]);
 
@@ -39,7 +38,7 @@ export class SliderTrackComponent extends Component {
   }
 
   #setHoverPadding() {
-    const hoverPadding = this.parent.widget.getHoverPadding();
+    const hoverPadding = this.parent.slider.getHoverPadding();
 
     if (hoverPadding > 0) {
       this.css({
@@ -54,7 +53,7 @@ export class SliderTrackComponent extends Component {
   }
 
   onMouseLeave() {
-    const { widget: slider } = this.parent;
+    const { slider } = this.parent;
 
     if (slider.isDragging) return;
 
@@ -65,7 +64,7 @@ export class SliderTrackComponent extends Component {
   //   console.log("onTrackChanged", this);
   //   const { isDragging } = this.parent.widget;
   //   if (!isDragging) return;
-  //   if (track.getIndex() === this.widget.getIndex()) {
+  //   if (track.getIndex() === this.track.getIndex()) {
   //     this.element.addClass("active");
   //   } else {
   //     this.element.removeClass("active");
@@ -79,7 +78,7 @@ export class SliderTrackComponent extends Component {
     //   console.log("onTrackChanged", this);
     //   const { isDragging } = this.parent.widget;
     //   if (!isDragging) return;
-    //   if (track.getIndex() === this.widget.getIndex()) {
+    //   if (track.getIndex() === this.track.getIndex()) {
     //     this.element.addClass("active");
     //   } else {
     //     this.element.removeClass("active");

@@ -1,7 +1,7 @@
-import { SliderTrack } from "./track.js";
-import { SliderProgressBar } from "../common/progress-bar.js";
+import { Track } from "./track.js";
+import { ProgressBar } from "../common/progress-bar.js";
 
-class ChapteredTrack extends SliderTrack {
+class ChapteredTrack extends Track {
   #chapter;
   #index;
   next = null;
@@ -58,8 +58,8 @@ export class ChapteredTrackList extends Array {
       ratioWidth,
     });
 
-    chapteredTrack.addBar(new SliderProgressBar("indicator"));
-    chapteredTrack.addBar(new SliderProgressBar("buffer"));
+    chapteredTrack.addBar(new ProgressBar("indicator"));
+    chapteredTrack.addBar(new ProgressBar("buffer"));
 
     return chapteredTrack;
   }

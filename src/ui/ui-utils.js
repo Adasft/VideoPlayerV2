@@ -15,9 +15,9 @@ const widgetPaths = {
     widget: "../widgets/slider/seeker-slider/seeker-slider.js",
     component: "../widgets/slider/seeker-slider/seeker-slider-component.js",
   },
-  stepsSlider: {
-    widget: "../widgets/slider/steps-slider/steps-slider.js",
-    component: "../widgets/slider/steps-slider/steps-slider-component.js",
+  stepSlider: {
+    widget: "../widgets/slider/steps-slider/step-slider.js",
+    component: "../widgets/slider/steps-slider/step-slider-component.js",
   },
   volumeSlider: {
     widget: "../widgets/slider/common/slider.js",
@@ -30,6 +30,14 @@ const widgetPaths = {
   videoStatusBar: {
     widget: "../widgets/video-status-bar/video-status-bar.js",
     component: "../widgets/video-status-bar/video-status-bar-component.js",
+  },
+  playbackControls: {
+    widget: "../widgets/playback-controls/playback-controls.js",
+    component: "../widgets/playback-controls/playback-controls-component.js",
+  },
+  volumeControl: {
+    widget: "../widgets/volume-control/volume-control.js",
+    component: "../widgets/volume-control/volume-control-component.js",
   },
 };
 
@@ -115,7 +123,7 @@ export async function createSeekerSlider(options) {
  * @returns {Promise<StepsSlider>}
  */
 export async function createStepsSlider(options) {
-  return await createWidget(widgetPaths.stepsSlider, options);
+  return await createWidget(widgetPaths.stepSlider, options);
 }
 
 /**
@@ -167,4 +175,21 @@ export async function createVideo(options) {
  */
 export async function createVideoStatusBar(options) {
   return await createWidget(widgetPaths.videoStatusBar, options);
+}
+
+/**
+ * Crea los controles de reproducción, que muestran los botones de reproducción,
+ * de repetición, de salto de segundos, etc.
+ *
+ * @param {Object} options - Opciones para los controles de reproducción.
+ * @param {Player} options.player - Objeto del player que se utilizará para mostrar los controles de reproducción.
+ *
+ * @returns {Promise<PlaybackControls>}
+ */
+export async function createPlaybackControls(options) {
+  return await createWidget(widgetPaths.playbackControls, options);
+}
+
+export async function createVolumeControl(options) {
+  return await createWidget(widgetPaths.volumeControl, options);
 }

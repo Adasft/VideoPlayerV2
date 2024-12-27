@@ -5,7 +5,7 @@
   font-family: Inter, sans-serif;
 }
 :root {
-  --player-default-icon-size: 23px;
+  --player-default-icon-size: 30px;
   --player-icon-color: rgb(255 255 255 / 70%);
   --player-icon-color-selected: rgb(16, 129, 227);
   --player-primaty-color: rgb(16, 129, 227);
@@ -16,7 +16,7 @@
   --player-slider-track-border-radius: 3px;
   --player-slider-track-background: rgb(255 255 255 / 30%);
   --player-slider-track-progress-background: var(--player-primaty-color);
-  --player-slider-track-buffer-background: rgb(255 255 255 / 10%);
+  --player-slider-track-buffer-background: rgb(255 255 255 / 20%);
   --player-slider-track-indicator-background: rgb(255 255 255 / 15%);
   --player-primary-text-color: #dbdbdb;
   --player-secondary-text-color: #d3d3d3;
@@ -24,6 +24,26 @@
   --player-md-text: 13px;
   --player-lg-text: 15px;
   --player-xl-text: 25px;
+}
+
+.loader {
+  --loader-color: rgb(255 255 255 / 90%);
+  width: 60px;
+  height: 60px;
+  aspect-ratio: 1;
+  display: none;
+  border-radius: 50%;
+  background: radial-gradient(farthest-side, var(--loader-color) 94%, #0000)
+      top/8px 8px no-repeat,
+    conic-gradient(#0000 30%, var(--loader-color));
+  mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: l13 1s infinite linear;
+}
+
+@keyframes l13 {
+  100% {
+    transform: rotate(1turn);
+  }
 }
 
 .player-container {
@@ -70,6 +90,7 @@
       &.selected {
         --player-icon-color: #fff;
         position: relative;
+
         &:before {
           content: "";
           position: absolute;
@@ -121,7 +142,7 @@
     left: 0;
     width: 100%;
     z-index: 5;
-    padding: 0px 40px 15px;
+    padding: 0px 40px 20px;
 
     &::after,
     &::before {
@@ -147,13 +168,13 @@
 
     &.show {
       &::before {
-        backdrop-filter: blur(30px);
+        backdrop-filter: blur(30px) saturate(200%);
       }
 
       &::after {
         background: linear-gradient(
           0deg,
-          rgba(0, 0, 0, 0.9) 0%,
+          rgba(0, 0, 0, 0.8) 0%,
           rgba(0, 0, 0, 0.6) 35%,
           rgba(0, 0, 0, 0.1) 90%,
           rgba(0, 0, 0, 0) 100%
@@ -190,13 +211,13 @@
         display: flex;
         align-items: flex-end;
         justify-content: flex-end;
-        gap: 10px;
+        gap: 15px;
         flex-shrink: 0;
       }
     }
 
     .video-timeline-wrapper {
-      margin-top: 15px;
+      margin-top: 20px;
 
       .video-seeker-wrapper {
         margin-bottom: 10px;
@@ -211,6 +232,90 @@
           font-weight: bold;
           color: var(--player-secondary-text-color);
         }
+      }
+    }
+  }
+
+  .player-playback-controls {
+    --player-default-icon-size: 50px;
+    --player-icon-color: rgb(255 255 255 / 90%);
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+
+    .player-button-control svg {
+      filter: drop-shadow(0px 5px 10px rgba(0, 0, 0, 0.5));
+    }
+
+    .player-playback-buttons-wrapper {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+
+      .player-play-and-loader-wrapper {
+        height: 60px;
+        .play-button {
+          --player-default-icon-size: 60px;
+        }
+      }
+    }
+  }
+
+  .player-volume-controls {
+    --player-default-icon-size: 30px;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 20px 40px 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+
+    .player-volume-slider-wrapper {
+      width: 150px;
+      margin-left: 15px;
+    }
+
+    &::after,
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 210%;
+      pointer-events: none;
+      z-index: -1;
+      transition: all 0.2s;
+    }
+
+    &::before {
+      mask-image: linear-gradient(to bottom, black, black, transparent);
+      backdrop-filter: blur(0px);
+    }
+
+    &::after {
+      background: transparent;
+    }
+
+    &.show {
+      &::before {
+        backdrop-filter: blur(30px) saturate(200%);
+      }
+
+      &::after {
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.7) 0%,
+          rgba(0, 0, 0, 0.5) 35%,
+          rgba(0, 0, 0, 0.1) 75%,
+          rgba(0, 0, 0, 0) 100%
+        );
       }
     }
   }
@@ -288,7 +393,7 @@
 
     &:hover,
     &.active {
-      box-shadow: 0 0 0 1px rgb(0 0 0 / 8%), 0 0 0 8px rgb(0 0 0 / 5%);
+      box-shadow: 0 0 0 1px rgb(0 0 0 / 8%), 0 0 0 8px rgb(255 255 255 / 10%);
     }
 
     &.show {

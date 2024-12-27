@@ -1,18 +1,18 @@
 import { Widget } from "../../widget.js";
-import { SliderProgressBar } from "../common/progress-bar.js";
+import { ProgressBar } from "../common/progress-bar.js";
 
-export class SliderTrack extends Widget {
+export class Track extends Widget {
   /**
    * Barras del track.
    *
    * @type {{
-   *   progress: SliderProgressBar,
-   *   indicator?: SliderProgressBar,
-   *   buffer?: SliderProgressBar
+   *   progress: ProgressBar,
+   *   indicator?: ProgressBar,
+   *   buffer?: ProgressBar
    * }}
    */
   #bars = {
-    progress: new SliderProgressBar(),
+    progress: new ProgressBar(),
   };
 
   get bars() {
@@ -32,7 +32,7 @@ export class SliderTrack extends Widget {
   }
 
   constructor({ range, ratioWidth }) {
-    super();
+    super("track");
     this.#range = range;
     this.#ratioWidth = ratioWidth;
   }

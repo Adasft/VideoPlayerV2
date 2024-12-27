@@ -129,8 +129,6 @@ export default class Video extends Widget {
     this.#isMuted = isMuted;
     this.#currentTime = currentTime;
 
-    // this.injectEventWidget(new MediaPlaybackEventWidget(this.eventBus));
-
     this.on("play", () => {
       this.#isPlaying = true;
     });
@@ -163,14 +161,14 @@ export default class Video extends Widget {
    * Método para reproducir el video y notificar al componente
    */
   play() {
-    this.component?.play();
+    return this.component?.play();
   }
 
   /**
    * Método para establecer el video en pausa y notificar al componente
    */
   pause() {
-    this.component?.pause();
+    return this.component?.pause();
   }
 
   requestPictureInPicture() {

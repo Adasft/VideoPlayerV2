@@ -52,27 +52,52 @@ export class DomElement extends DomNode {
   }
 
   /**
-   * Appends children to the DOM element.
+   * Appends or prepends children to the DOM element.
    *
-   * @param {(DomNode | Component | string | number)[]} children - The children to append.
-   * @param {((child: DomNode) => void)} [callback] - A callback function to be called after each child is appended.
+   * @param {(DomNode | Component | string | number)[]} children - The children to add.
+   * @param {"append" | "prepend"} method - The method to use for adding children.
+   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is added.
    */
-  append(children, callback) {
+  #addChildren(children, method, callback) {
     children.forEach((child) => {
       const isChildComponent = child instanceof Component;
       const isChildDomNode = child instanceof DomNode;
 
       if (isChildComponent || isChildDomNode) {
-        this.node.appendChild(child.node);
-        this.#children.add(isChildComponent ? child.element : child);
+        this.node[method](child.node);
+        if (isChildComponent) {
+          this.#children.add(child.element);
+        } else {
+          this.#children.add(child);
+        }
       } else if (child !== null && child !== undefined) {
-        this.node.appendChild(document.createTextNode(JSON.stringify(child)));
+        this.node[method](document.createTextNode(JSON.stringify(child)));
       }
 
       if (callback) {
         callback(child);
       }
     });
+  }
+
+  /**
+   * Appends children to the DOM element.
+   *
+   * @param {(DomNode | Component | string | number)[]} children - The children to append.
+   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is appended.
+   */
+  append(children, callback) {
+    this.#addChildren(children, "append", callback);
+  }
+
+  /**
+   * Prepends children to the DOM element.
+   *
+   * @param {(DomNode | Component | string | number)[]} children - The children to prepend.
+   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is prepended.
+   */
+  prepend(children, callback) {
+    this.#addChildren(children, "prepend", callback);
   }
 
   css(styles) {
@@ -148,5 +173,9 @@ export class DomText extends DomNode {
 
   getText() {
     return this.node.textContent;
+  }
+
+  disconnect() {
+    this.node.remove();
   }
 }

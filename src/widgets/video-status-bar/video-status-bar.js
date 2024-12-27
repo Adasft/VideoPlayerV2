@@ -17,32 +17,39 @@ export default class VideoStatusBar extends Widget {
     super();
     this.#player = player;
     this.#initializeControlsEvents();
+
+    this.#player.video.on("pictureInPictureExit", () => {
+      this.#togglePiPButtonActive(false);
+    });
   }
 
-  onRefresh() {
+  async onRefresh() {
     const { source } = this.player;
     const { sliders } = this.controls;
 
     const duration = this.player.duration;
     const currentTime = this.player.currentTime;
     const titleText = source.title;
-    const chapterTitleText = this.player.getCurrentChapter()?.title ?? "";
+
+    await this.controls.createOrDestroyPlaylistControls();
+    await this.controls.createOrDestroyChaptersControls();
+    await this.controls.createOrDestroyChapterTitle();
 
     sliders.seeker.refresh({
       value: currentTime,
       min: 0,
       max: duration,
-      chapters: source.chapters,
+      chapters: source.chapters ?? [],
     });
 
-    this.controls.createOrDestroyPlaylistControls();
-    this.controls.createOrDestroyChaptersControls();
-    this.controls.createOrDestroyChapterTitle();
-
     this.setTitle(titleText);
-    this.setChapterTitle(chapterTitleText);
     this.setCurrentTimeText(currentTime);
     this.setDurationText(duration);
+
+    if (this.player.hasChapters()) {
+      const chapterTitleText = this.player.getCurrentChapterTitle();
+      this.setChapterTitle(chapterTitleText);
+    }
 
     this.emit("refresh");
   }
@@ -65,23 +72,28 @@ export default class VideoStatusBar extends Widget {
 
   #setupSeekerSliderEvents() {
     const { seeker } = this.controls.sliders;
+    let isPlaying;
 
-    seeker.on("valueChanged", (value) => {
+    seeker.on("drag", (value) => {
       this.setCurrentTimeText(value);
     });
 
     seeker.on("dragStart", () => {
+      isPlaying = this.player.isPlaying;
       this.player.pause();
     });
 
     seeker.on("dragEnd", () => {
       this.player.currentTime = seeker.getValue();
-      this.player.play();
+      if (isPlaying) {
+        this.player.play();
+      }
     });
 
     seeker.on("mousePressed", () => {
-      this.player.pause();
-      this.player.currentTime = seeker.getValue();
+      const value = seeker.getValue();
+      this.player.currentTime = value;
+      this.setCurrentTimeText(value);
     });
 
     seeker.on("trackChanged", ({ currentTrack }) => {
@@ -120,8 +132,15 @@ export default class VideoStatusBar extends Widget {
     this.player.emit("activeRandomPlaybackChanged", isActiveRandomPlayback);
   }
 
-  #togglePipMode() {
+  #togglePiPButtonActive(isPiPActive) {
     const { buttons } = this.controls;
+    buttons.pictureInPicture.icon = isPiPActive
+      ? SVGIcons.PICTURE_IN_PICTURE_ACTIVE
+      : SVGIcons.PICTURE_IN_PICTURE;
+    buttons.pictureInPicture.selected = isPiPActive;
+  }
+
+  #togglePipMode() {
     const isPiPActive = !this.player.isPiPActive;
 
     if (isPiPActive) {
@@ -130,10 +149,7 @@ export default class VideoStatusBar extends Widget {
       this.player.deactivatePip();
     }
 
-    buttons.pictureInPicture.icon = isPiPActive
-      ? SVGIcons.PICTURE_IN_PICTURE_ACTIVE
-      : SVGIcons.PICTURE_IN_PICTURE;
-    buttons.pictureInPicture.selected = isPiPActive;
+    this.#togglePiPButtonActive(isPiPActive);
   }
 
   #setupButtonsEvents() {

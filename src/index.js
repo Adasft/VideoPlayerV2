@@ -82,25 +82,33 @@ const player = new Player({
   source: {
     src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     title: "Este es un video con un titulo",
+    currentTime: 220,
     chapters: [
       { start: 0, end: 200, title: "Chapter 1" },
-      { start: 200, end: 400, title: "Chapter 2" },
-      { start: 400, end: 596.474195, title: "Chapter 3" },
+      { start: 200, end: 270, title: "Chapter 2" },
+      { start: 270, end: 400, title: "Chapter 2" },
+      { start: 400, end: 600, title: "Chapter 3" },
+      { start: 600, end: 596.474195, title: "Chapter 3" },
     ],
   },
-  width: 800,
-  height: 450,
+  width: 1200,
+  height: 700,
+  autoplay: true,
   playlist: {
-    loop: true,
+    loop: false,
     startIndex: 0,
     sources: [
       {
-        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        title: "Video",
+        src: "./video1.mp4",
+        title: "Video 1",
       },
       {
-        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
         title: "Video 2",
+      },
+      {
+        src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+        title: "Video 3",
       },
     ],
   },

@@ -1,6 +1,6 @@
 import Slider from "../common/slider.js";
 
-export default class StepsSlider extends Slider {
+export default class StepSlider extends Slider {
   /**
    * Pasos que representan los valores del slider.
    *

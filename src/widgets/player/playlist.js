@@ -94,10 +94,10 @@ export default class PlayList {
 
   prev() {
     if (
-      this.#player.getCurrentTime() >= 5 ||
+      this.#player.currentTime >= 5 ||
       (!this.#loop && this.#currentIndex === 0)
     ) {
-      this.#player.setCurrentTime(0);
+      this.#player.currentTime = 0;
       return;
     }
 

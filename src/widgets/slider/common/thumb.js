@@ -1,6 +1,6 @@
 import { Widget } from "../../widget.js";
 
-export class SliderThumb extends Widget {
+export class Thumb extends Widget {
   constructor() {
     super();
   }

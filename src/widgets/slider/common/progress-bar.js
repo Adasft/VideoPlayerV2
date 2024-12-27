@@ -1,6 +1,6 @@
 import { Widget } from "../../widget.js";
 
-export class SliderProgressBar extends Widget {
+export class ProgressBar extends Widget {
   #progress;
   #name;
 

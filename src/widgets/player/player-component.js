@@ -13,25 +13,34 @@ export default class PlayerComponent extends Component {
     });
   }
 
+  onControlsReady() {
+    const videoStatusBarComponent = this.player.videoStatusBar.component;
+    const playbackControlsComponent = this.player.playbackControls.component;
+    const volumeControlComponent = this.player.volumeControl.component;
+    this.append(
+      videoStatusBarComponent,
+      playbackControlsComponent,
+      volumeControlComponent
+    );
+  }
+
+  onVideoReady() {
+    this.appendWrapper(this.#createVideoContainerWrapper());
+  }
+
   #init() {
     this.css({
-      width: `${this.widget.width}px`,
-      height: `${this.widget.height}px`,
+      width: `${this.player.width}px`,
+      height: `${this.player.height}px`,
     });
 
-    this.widget.once("controlsReady", () => {
-      const videoStatusBarComponent = this.widget.videoStatusBar.component;
-      this.append(videoStatusBarComponent);
-    });
-
-    this.widget.once("videoReady", () => {
-      this.element.append([this.#createVideoContainerWrapper().element]);
-    });
+    this.player.once("controlsReady", this.onControlsReady.bind(this));
+    this.player.once("videoReady", this.onVideoReady.bind(this));
   }
 
   #createVideoContainerWrapper() {
     return this.wrapper("div", "player-video-container").add(
-      this.widget.video.component
+      this.player.video.component
     );
   }
 }

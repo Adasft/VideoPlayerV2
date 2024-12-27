@@ -8,11 +8,11 @@ export default class VideoComponent extends Component {
   }
 
   play() {
-    this.node.play();
+    return this.node.play();
   }
 
   pause() {
-    this.node.pause();
+    return this.node.pause();
   }
 
   setCurrentTime(time) {
@@ -24,7 +24,7 @@ export default class VideoComponent extends Component {
       .requestPictureInPicture()
       .then(() => {
         Dom.once(document, "leavepictureinpicture", () => {
-          this.widget.emit("pictureInPictureExit");
+          this.video.emit("pictureInPictureExit");
         });
       })
       .catch(() => {
@@ -55,6 +55,7 @@ export default class VideoComponent extends Component {
   }
 
   onMutedChange(isMuted) {
+    console.log(isMuted);
     this.node.muted = isMuted;
   }
 
@@ -71,11 +72,11 @@ export default class VideoComponent extends Component {
   }
 
   onWaiting() {
-    this.widget.emit("waiting");
+    this.video.emit("waiting");
   }
 
   onPlaying() {
-    const video = this.widget;
+    const { video } = this;
     video.emit("playing");
     if (video.loop && Math.floor(video.currentTime) === 0) {
       if (video.loopMode === "once") {
@@ -87,7 +88,7 @@ export default class VideoComponent extends Component {
   onLoadedMetaData() {
     this.#bindEvent("canplay", () => this.onCanPlay(), { once: true });
 
-    this.widget.emit("loadedMetaData", {
+    this.video.emit("loadedMetaData", {
       duration: this.node.duration,
       currentTime: this.node.currentTime,
       volume: this.node.volume,
@@ -95,37 +96,38 @@ export default class VideoComponent extends Component {
   }
 
   onCanPlay() {
-    this.widget.emit("canPlay");
-    this.widget.emit("audioDetected", this.#hasAudio());
+    const { video } = this;
+    video.emit("canPlay");
+    this.video.emit("audioDetected", this.#hasAudio());
   }
 
   onTimeUpdate() {
-    this.widget.emit("timeUpdate", this.node.currentTime);
+    this.video.emit("timeUpdate", this.node.currentTime);
   }
 
   onPause() {
-    this.widget.emit("pause");
+    this.video.emit("pause");
   }
 
   onPlay() {
-    this.widget.emit("play");
+    this.video.emit("play");
   }
 
   onProgress() {
-    this.widget.emit("progress", this.#calculateBufferedEndProgress());
+    this.video.emit("progress", this.#calculateBufferedEndProgress());
   }
 
   onError() {
     console.error("VideoWidget: error loading video");
-    this.widget.emit("error");
+    this.video.emit("error");
   }
 
   onEnded() {
-    this.widget.emit("ended");
+    this.video.emit("ended");
   }
 
   #init() {
-    const video = this.widget;
+    const { video } = this;
     // Eventos del controlador
     video.on("refresh", this.onRefresh.bind(this));
     video.on("volumeChange", this.onVolumeChange.bind(this));
@@ -150,7 +152,7 @@ export default class VideoComponent extends Component {
   }
 
   #initializeVideoData() {
-    const video = this.widget;
+    const { video } = this;
 
     Object.assign(this.node, {
       width: video.width,

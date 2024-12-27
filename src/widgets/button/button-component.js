@@ -9,7 +9,7 @@ export default class ButtonComponent extends Component {
   }
 
   onClick = () => {
-    this.widget.emit("click");
+    this.button.emit("click");
   };
 
   onEnabledChange(isEnabled) {
@@ -35,6 +35,12 @@ export default class ButtonComponent extends Component {
     this.#setIcon(icon);
   }
 
+  onVisibilityChange(isVisible) {
+    this.css({
+      display: isVisible ? "block" : "none",
+    });
+  }
+
   createElement() {
     return Dom.elm("button", {
       class: "player-button-control",
@@ -46,7 +52,7 @@ export default class ButtonComponent extends Component {
   }
 
   #init() {
-    const button = this.widget;
+    const { button } = this;
 
     if (button.hasIcon) {
       this.#setIcon(button.icon);
@@ -54,10 +60,11 @@ export default class ButtonComponent extends Component {
       button.on("iconChange", this.onIconChange.bind(this));
     }
 
-    this.addClass(button.isFilled ? "filled-icon" : "outline-icon");
+    this.addClass(button.hasFilledIcon ? "filled-icon" : "outline-icon");
 
     button.on("enabledChange", this.onEnabledChange.bind(this));
     button.on("selectedChange", this.onSelectedChange.bind(this));
+    button.on("visibilityChange", this.onVisibilityChange.bind(this));
 
     this.on("click", this.onClick);
   }

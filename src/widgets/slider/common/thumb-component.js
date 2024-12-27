@@ -9,19 +9,19 @@ export class SliderThumbComponent extends Component {
   }
 
   #init() {
-    this.widget.on("move", (progress) => {
+    this.thumb.on("move", (progress) => {
       this.css({
         left: `calc(${progress * 100}% - var(--player-slider-thumb-size) / 2)`,
       });
     });
 
-    this.widget.on("visibilityChange", (isVisible) => {
+    this.thumb.on("visibilityChange", (isVisible) => {
       isVisible ? this.show() : this.hide();
     });
   }
 
   onAppended() {
-    const { widget: slider } = this.parent;
+    const { slider } = this.parent;
 
     if (!slider.showAlwaysThumb()) {
       this.hide();

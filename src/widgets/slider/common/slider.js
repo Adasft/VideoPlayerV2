@@ -1,7 +1,7 @@
 import { Widget } from "../../widget.js";
 import { ChapteredTrackList } from "../track/chaptered-track-list.js";
-import { SliderTrack } from "../track/track.js";
-import { SliderThumb } from "./thumb.js";
+import { Track } from "../track/track.js";
+import { Thumb } from "./thumb.js";
 // import { SeekerSlider } from "../seeker-slider/seeker-slider.js";
 
 export default class Slider extends Widget {
@@ -85,7 +85,7 @@ export default class Slider extends Widget {
   #showAlwaysThumb;
   /**
    * The thumb element of the slider.
-   * @type {SliderThumb}
+   * @type {Thumb}
    */
   #thumb;
   get thumb() {
@@ -95,11 +95,11 @@ export default class Slider extends Widget {
   /**
    * The track element of the slider.
    *
-   * @type {SliderTrack | ChapteredTrackList}
+   * @type {Track | ChapteredTrackList}
    */
   #track;
   get tracks() {
-    return this.#track instanceof SliderTrack ? [this.#track] : this.#track;
+    return this.#track instanceof Track ? [this.#track] : this.#track;
   }
 
   get track() {
@@ -141,7 +141,7 @@ export default class Slider extends Widget {
     hoverPadding = 0,
     showAlwaysThumb = true,
   }) {
-    super();
+    super("slider");
     this.#value = value;
     this.#min = min;
     this.#max = max;
@@ -149,7 +149,7 @@ export default class Slider extends Widget {
     this.#hoverPadding = hoverPadding;
     this.#showAlwaysThumb = showAlwaysThumb;
 
-    this.#thumb = new SliderThumb();
+    this.#thumb = new Thumb();
 
     if (new.target === Slider) {
       this.createTrack();
@@ -179,7 +179,7 @@ export default class Slider extends Widget {
   }
 
   createTrack() {
-    this.track = new SliderTrack({
+    this.track = new Track({
       range: { start: this.#min, end: this.#max, limit: this.#max },
       ratioWidth: 1,
     });

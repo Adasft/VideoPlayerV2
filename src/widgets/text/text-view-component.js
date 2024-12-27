@@ -8,7 +8,6 @@ export default class TextViewComponent extends Component {
    * Crea un componente de texto virtual del controlador
    *
    * @param {Text} widget
-   * @param {Component} parent
    */
   constructor(widget) {
     super(widget);
@@ -16,7 +15,7 @@ export default class TextViewComponent extends Component {
   }
 
   #init() {
-    const textView = this.widget;
+    const { textView } = this;
     this.#textNode = Dom.text(textView.text);
     this.element.append([this.#textNode]);
 

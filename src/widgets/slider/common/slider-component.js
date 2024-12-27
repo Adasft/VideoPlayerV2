@@ -20,15 +20,6 @@ export default class SliderComponent extends Component {
   #isMouseEntered = false;
 
   /**
-   * Instancia del slider.
-   *
-   * @type {Slider}
-   */
-  get slider() {
-    return this.widget;
-  }
-
-  /**
    * Crea un componente de slider.
    *
    * @param {Slider} widget - Instancia del slider.
@@ -69,7 +60,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseMove({ clientX }) {
-    const slider = this.slider;
+    const { slider } = this;
 
     if (!slider.isMouseMoving) return;
 
@@ -95,7 +86,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseUp({ target }) {
-    const slider = this.slider;
+    const { slider } = this;
 
     if (!this.#isMouseEntered) {
       const closestTarget = target.closest(".slider-container");
@@ -113,7 +104,7 @@ export default class SliderComponent extends Component {
   }
 
   onMouseEnter() {
-    const slider = this.slider;
+    const { slider } = this;
     this.#isMouseEntered = true;
 
     if (slider.isHoverGrowthEnabled()) {
@@ -129,16 +120,15 @@ export default class SliderComponent extends Component {
   }
 
   onMouseLeave() {
-    const slider = this.slider;
     this.#isMouseEntered = false;
 
-    if (slider.isDragging) return;
+    if (this.slider.isDragging) return;
 
     this.disableHoverEffects();
   }
 
   onMouseDown({ clientX }) {
-    const slider = this.slider;
+    const { slider } = this;
 
     Dom.disableSelection();
     Dom.setCursorPointer();
@@ -161,13 +151,13 @@ export default class SliderComponent extends Component {
   }
 
   #init() {
-    const slider = this.widget;
+    const { slider } = this;
 
     this.#setupSliderComponents();
     this.#bindMouseEvents();
 
     slider.on("refresh", () => {
-      onRefresh();
+      this.onRefresh();
     });
 
     slider.on("mousePressed", () => {

@@ -152,6 +152,7 @@ export class MultiTrackManager {
     ) {
       cache.shouldUpdate = true;
     }
+
     return this.#getActiveChapteredTrack(value, cache);
   }
 
