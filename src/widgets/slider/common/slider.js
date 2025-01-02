@@ -16,30 +16,14 @@ export default class Slider extends Widget {
    *
    * @type {number}
    */
-  #min;
-
-  get min() {
-    return this.#min;
-  }
-
-  set min(min) {
-    this.#min = min;
-  }
+  min;
 
   /**
    * The maximum value of the slider.
    *
    * @type {number}
    */
-  #max;
-
-  get max() {
-    return this.#max;
-  }
-
-  set max(max) {
-    this.#max = max;
-  }
+  max;
 
   /**
    * Whether the slider is currently dragging.
@@ -88,9 +72,6 @@ export default class Slider extends Widget {
    * @type {Thumb}
    */
   #thumb;
-  get thumb() {
-    return this.#thumb;
-  }
 
   /**
    * The track element of the slider.
@@ -98,6 +79,40 @@ export default class Slider extends Widget {
    * @type {Track | ChapteredTrackList}
    */
   #track;
+
+  #isCompleted = false;
+
+  #isStated = false;
+
+  #isInitializedValue = false;
+
+  constructor({
+    value,
+    min,
+    max,
+    enableHoverGrowth = false,
+    hoverPadding = 0,
+    showAlwaysThumb = true,
+  }) {
+    super("slider");
+    this.#value = value;
+    this.min = min;
+    this.max = max;
+    this.#enableHoverGrowth = enableHoverGrowth;
+    this.#hoverPadding = hoverPadding;
+    this.#showAlwaysThumb = showAlwaysThumb;
+
+    this.#thumb = new Thumb();
+
+    if (new.target === Slider) {
+      this.createTrack();
+    }
+  }
+
+  get thumb() {
+    return this.#thumb;
+  }
+
   get tracks() {
     return this.#track instanceof Track ? [this.#track] : this.#track;
   }
@@ -112,13 +127,9 @@ export default class Slider extends Widget {
     this.#track = track;
   }
 
-  #isCompleted = false;
-
   get isCompleted() {
     return this.#isCompleted;
   }
-
-  #isStated = false;
 
   get isStated() {
     return this.#isStated;
@@ -126,69 +137,26 @@ export default class Slider extends Widget {
 
   get isUpdateNotAllowed() {
     return (
-      (this.#value >= this.#max && this.#isCompleted) ||
-      (this.#value <= this.#min && this.#isStated)
+      (this.#value >= this.max && this.#isCompleted) ||
+      (this.#value <= this.min && this.#isStated)
     );
   }
 
-  #isInitializedValue = false;
-
-  constructor({
-    value,
-    min,
-    max,
-    enableHoverGrowth = false,
-    hoverPadding = 0,
-    showAlwaysThumb = true,
-  }) {
-    super("slider");
-    this.#value = value;
-    this.#min = min;
-    this.#max = max;
-    this.#enableHoverGrowth = enableHoverGrowth;
-    this.#hoverPadding = hoverPadding;
-    this.#showAlwaysThumb = showAlwaysThumb;
-
-    this.#thumb = new Thumb();
-
-    if (new.target === Slider) {
-      this.createTrack();
-    }
-  }
-
-  #updateProgress() {
-    const progress = this.getProgress();
-    this.#thumb.moveTo(progress);
-    this.track.setProgress(progress);
-  }
-
-  #updateState() {
-    this.#isCompleted = this.#value === this.#max;
-    this.#isStated = this.#value === this.#min;
-  }
-
-  #applyValue(value) {
-    const clampedValue = this.clampValue(value);
-    const isSameValue = clampedValue === this.#value;
-    this.#value = clampedValue;
-    return isSameValue;
-  }
-
   clampValue(value) {
-    return Math.min(this.#max, Math.max(this.#min, value));
+    return Math.min(this.max, Math.max(this.min, value));
   }
 
   createTrack() {
     this.track = new Track({
-      range: { start: this.#min, end: this.#max, limit: this.#max },
+      range: { start: this.min, end: this.max, limit: this.max },
       ratioWidth: 1,
     });
   }
 
   shouldStopUpdatingValue(value) {
     return (
-      (this.isCompleted() && value === this.#max) ||
-      (this.isStarted() && value === this.#min)
+      (this.isCompleted() && value === this.max) ||
+      (this.isStarted() && value === this.min)
     );
   }
 
@@ -219,13 +187,13 @@ export default class Slider extends Widget {
   }
 
   onRefresh({ value, min, max }) {
-    this.#min = min;
-    this.#max = max;
+    this.min = min;
+    this.max = max;
     this.setValue(value);
   }
 
   getProgress() {
-    return (this.#value - this.#min) / (this.#max - this.#min);
+    return (this.#value - this.min) / (this.max - this.min);
   }
 
   isAutoSliding() {
@@ -242,5 +210,23 @@ export default class Slider extends Widget {
 
   showAlwaysThumb() {
     return this.#showAlwaysThumb;
+  }
+
+  #updateProgress() {
+    const progress = this.getProgress();
+    this.#thumb.moveTo(progress);
+    this.track.setProgress(progress);
+  }
+
+  #updateState() {
+    this.#isCompleted = this.#value === this.max;
+    this.#isStated = this.#value === this.min;
+  }
+
+  #applyValue(value) {
+    const clampedValue = this.clampValue(value);
+    const isSameValue = clampedValue === this.#value;
+    this.#value = clampedValue;
+    return isSameValue;
   }
 }

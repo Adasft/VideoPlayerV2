@@ -1,190 +1,18 @@
 import { Widget } from "../widget.js";
 import * as ui from "../../ui/ui-utils.js";
-import { Controls } from "../../ui/controls.js";
 import SVGIcons from "../../ui/icons.js";
-import { formatTime, noop } from "../../utils.js";
+import PlayerControls from "./player-controls.js";
+import { formatTime, getRandomId, debounce } from "../../utils.js";
+import PlayerStorageTracker, {
+  STORAGE_KEY,
+} from "../../storage/player-tracker.js";
+import Storage from "../../storage/storage.js";
 
-class PlayerControls {
-  #controls;
-
-  #conditionalControls = {
-    createOrDestroyPlaylistControls: noop,
-    createOrDestroyChaptersControls: noop,
-    createOrDestroyChapterTitle: noop,
-    createOrDestroyVolumeSlider: noop,
-  };
-
-  get controls() {
-    return this.#controls;
-  }
-
-  get buttons() {
-    return this.#controls.buttons;
-  }
-
-  get sliders() {
-    return this.#controls.sliders;
-  }
-
-  get textViews() {
-    return this.#controls.textViews;
-  }
-
-  constructor(player) {
-    this.player = player;
-    this.#controls = new Controls();
-  }
-
-  createOrDestroyPlaylistControls() {
-    return this.#conditionalControls.createOrDestroyPlaylistControls({
-      prev: { icon: SVGIcons.BACKWARD },
-      next: { icon: SVGIcons.FORWARD },
-      playlist: { icon: SVGIcons.PLAYLIST },
-    });
-  }
-
-  createOrDestroyChaptersControls() {
-    return this.#conditionalControls.createOrDestroyChaptersControls({
-      chapters: { icon: SVGIcons.CHAPTERS },
-    });
-  }
-
-  createOrDestroyChapterTitle() {
-    return this.#conditionalControls.createOrDestroyChapterTitle({
-      chapterTitle: { text: this.player.getCurrentChapterTitle() },
-    });
-  }
-
-  createOrDestroyVolumeSlider() {
-    return this.#conditionalControls.createOrDestroyVolumeSlider({
-      volume: { value: this.player.volume },
-    });
-  }
-
-  #getSkipTimeIcon(skipTime, suffix) {
-    return SVGIcons[`SKIP_${skipTime}_${suffix}`];
-  }
-
-  #createButtonGroupControls() {
-    const skipTime = this.player.skipTime;
-
-    const controls = {
-      play: { icon: SVGIcons.PLAY },
-      volume: { icon: SVGIcons.VOLUME_HIGH },
-      repeat: { icon: SVGIcons.REPEAT },
-      shuffle: { icon: SVGIcons.SHUFFLE },
-      fullscreen: { icon: SVGIcons.FULLSCREEN },
-      skipBack: { icon: this.#getSkipTimeIcon(skipTime, "BACK") },
-      skipForward: { icon: this.#getSkipTimeIcon(skipTime, "FORWARD") },
-      pictureInPicture: { icon: SVGIcons.PICTURE_IN_PICTURE },
-      speed: { icon: SVGIcons.SPEED },
-    };
-
-    return {
-      name: "buttons",
-      createControl: (options) => ui.createButton(options),
-      controls,
-    };
-  }
-
-  #createSliderGroupControls() {
-    const { source, video, muted, volume } = this.player;
-
-    const seekerOptions = {
-      value: source.currentTime,
-      min: 0,
-      max: video.duration,
-      hoverPadding: 10,
-      chapters: source.chapters,
-    };
-
-    const volumeOptions = {
-      volume: muted ? 0 : volume,
-    };
-
-    const controls = {
-      seeker: seekerOptions,
-      volume: volumeOptions,
-    };
-
-    const createControl = (options, controlName) => {
-      return (
-        controlName === "seeker"
-          ? ui.createSeekerSlider
-          : controlName === "volume"
-          ? ui.createVolumeSlider
-          : ui.createStepsSlider
-      )(options);
-    };
-
-    return {
-      name: "sliders",
-      createControl,
-      controls,
-    };
-  }
-
-  #createTextViewGroupControls() {
-    const { source, video } = this.player;
-
-    const controls = {
-      title: { text: source.title },
-      currentTime: { text: formatTime(source.currentTime) },
-      duration: { text: formatTime(video.duration) },
-    };
-
-    return {
-      name: "textViews",
-      createControl: (options) => ui.createTextView(options),
-      controls,
-    };
-  }
-
-  async #defineControlGroups(group) {
-    for (const { name, createControl, controls } of group) {
-      const controlsGroup = this.#controls.defineGroup({
-        name,
-        createControl,
-      });
-
-      await controlsGroup.add(controls);
-    }
-
-    this.#defineConditionalControls();
-  }
-
-  #defineConditionalControls() {
-    // Define las condiciones para crear o destruir los controles de
-    // la lista de reproducción y los capítulos.
-    this.#conditionalControls.createOrDestroyPlaylistControls =
-      this.buttons.createWhen(() => this.player.hasPlaylist());
-    this.#conditionalControls.createOrDestroyChaptersControls =
-      this.buttons.createWhen(() => this.player.hasChapters());
-    this.#conditionalControls.createOrDestroyChapterTitle =
-      this.textViews.createWhen(() => this.player.hasChapters());
-    this.#conditionalControls.createOrDestroyVolumeSlider =
-      this.sliders.createWhen(() => this.player.hasAudio);
-  }
-
-  async createControls() {
-    const group = [
-      this.#createButtonGroupControls(),
-      this.#createSliderGroupControls(),
-      this.#createTextViewGroupControls(),
-    ];
-
-    await this.#defineControlGroups(group);
-
-    this.createOrDestroyPlaylistControls();
-    this.createOrDestroyChaptersControls();
-    this.createOrDestroyChapterTitle();
-  }
-}
+const VALID_SKIP_TIMES = [5, 10, 15, 20];
+const DEFAULT_SKIP_TIME = 5;
+const STORAGE_DELAY = 900;
 
 export default class Player extends Widget {
-  static #VALID_SKIP_TIMES = [5, 10, 15, 20];
-  static #DEFAULT_SKIP_TIME = 5;
-
   #currentSource;
   #width;
   #height;
@@ -196,6 +24,12 @@ export default class Player extends Widget {
   #playlist;
   #isRandomPlaybackActive = false;
   #isControlsReady = false;
+  #enableStorage;
+  #overwriteStorage;
+  #playbackRate;
+  #loopMode;
+
+  #storageTracker;
 
   #video;
   #videoStatusBar;
@@ -203,6 +37,8 @@ export default class Player extends Widget {
   #loader;
   #volumeControl;
   #controls;
+
+  #isStorageDefined = false;
 
   constructor({
     source,
@@ -212,8 +48,12 @@ export default class Player extends Widget {
     volume = 1,
     muted = false,
     loop = false,
-    skipTime = Player.#DEFAULT_SKIP_TIME,
+    loopMode = "none",
+    skipTime = DEFAULT_SKIP_TIME,
     playlist,
+    enableStorage = false,
+    overwriteStorage = false,
+    playbackRate = 1,
   }) {
     super();
 
@@ -223,13 +63,52 @@ export default class Player extends Widget {
     this.#volume = volume;
     this.#muted = muted;
     this.#loop = loop;
+    this.#loopMode = loopMode;
     this.#skipTime = this.#normalizeSkipTime(skipTime);
+    this.#enableStorage = enableStorage;
+    this.#overwriteStorage = overwriteStorage;
+    this.#playbackRate = playbackRate;
 
-    this.#initializeLoader();
+    if (this.#enableStorage) {
+      this.#storageTracker = PlayerStorageTracker.getInstance(this);
+
+      this.#isStorageDefined =
+        Storage.has(STORAGE_KEY) && !this.#overwriteStorage;
+
+      if (this.#isStorageDefined) {
+        const state = this.#storageTracker.getState();
+        this.#muted = state.muted;
+        this.#volume = state.volume;
+        this.#playbackRate = state.playbackRate;
+        this.#loop = state.loop;
+        this.#loopMode = state.loopMode;
+        this.#autoplay = state.autoplay;
+      } else {
+        this.#storageTracker.saveState({
+          muted: this.#muted,
+          volume: this.#volume,
+          playbackRate: this.#playbackRate,
+          loop: this.#loop,
+          loopMode: this.#loopMode,
+          autoplay: this.#autoplay,
+        });
+      }
+    }
+
+    this.#createLoader();
 
     if (playlist) {
       this.once("playlistReady", () => {
-        this.#initializeVideo();
+        this.#createVideo();
+
+        if (this.#enableStorage && !this.#storageTracker) {
+          this.#storageTracker.patchState((state) => {
+            state.playlist = {
+              currentIndex: this.#playlist.currentIndex,
+              loop: this.#loop,
+            };
+          });
+        }
       });
     }
 
@@ -245,8 +124,12 @@ export default class Player extends Widget {
 
   get source() {
     return this.hasPlaylist()
-      ? this.#playlist.getCurrentSource()
+      ? this.#playlist.currentSource
       : this.#currentSource;
+  }
+
+  get sources() {
+    return this.hasPlaylist() ? this.#playlist.sources : [this.#currentSource];
   }
 
   get video() {
@@ -291,6 +174,7 @@ export default class Player extends Widget {
 
   set volume(volume) {
     this.video.volume = volume;
+    this.#saveVolume(volume);
   }
 
   get volume() {
@@ -300,10 +184,11 @@ export default class Player extends Widget {
   set muted(isMuted) {
     this.#muted = isMuted;
     this.video.muted = isMuted;
+    this.#saveMuted(isMuted);
   }
 
   get muted() {
-    return this.video.muted;
+    return this.#muted;
   }
 
   get hasAudio() {
@@ -326,8 +211,24 @@ export default class Player extends Widget {
     return this.#skipTime;
   }
 
+  set loop(isLoop) {
+    this.#loop = isLoop;
+    this.video.loop = isLoop;
+    this.#saveLoop(isLoop);
+  }
+
   get loop() {
     return this.#loop;
+  }
+
+  set loopMode(loopMode) {
+    this.#loopMode = loopMode;
+    this.video.loopMode = loopMode;
+    this.#saveLoopMode(loopMode);
+  }
+
+  get loopMode() {
+    return this.#loopMode;
   }
 
   get autoplay() {
@@ -340,6 +241,20 @@ export default class Player extends Widget {
 
   get playlist() {
     return this.#playlist;
+  }
+
+  set playbackRate(playbackRate) {
+    this.#playbackRate = playbackRate;
+    this.#video.playbackRate = playbackRate;
+    this.#savePlaybackRate(playbackRate);
+  }
+
+  get playbackRate() {
+    return this.#playbackRate;
+  }
+
+  get storage() {
+    return this.#storageTracker;
   }
 
   hasPlaylist() {
@@ -384,14 +299,53 @@ export default class Player extends Widget {
     this.video.currentTime += this.#skipTime;
   }
 
+  #saveVolume = debounce((volume) => {
+    this.#storageTracker?.saveState({
+      volume,
+    });
+  }, STORAGE_DELAY);
+
+  #saveMuted = debounce((muted) => {
+    this.#storageTracker?.saveState({
+      muted,
+    });
+  }, STORAGE_DELAY);
+
+  #savePlaybackRate = debounce((playbackRate) => {
+    this.#storageTracker?.saveState({
+      playbackRate,
+    });
+  }, STORAGE_DELAY);
+
+  #saveLoop = debounce((loop) => {
+    this.#storageTracker?.saveState({
+      loop,
+    });
+  }, STORAGE_DELAY);
+
+  #saveLoopMode = debounce((loopMode) => {
+    this.#storageTracker?.saveState({
+      loopMode,
+    });
+  }, STORAGE_DELAY);
+
+  #savePlaylist = debounce((currentIndex, loop) => {
+    this.#storageTracker?.saveState({
+      playlist: {
+        currentIndex,
+        loop,
+      },
+    });
+  }, STORAGE_DELAY);
+
   #normalizeSkipTime(skipTime) {
-    if (!Player.#VALID_SKIP_TIMES.includes(skipTime)) {
-      return Player.#DEFAULT_SKIP_TIME;
+    if (!VALID_SKIP_TIMES.includes(skipTime)) {
+      return DEFAULT_SKIP_TIME;
     }
     return skipTime;
   }
 
-  async #initializeLoader() {
+  async #createLoader() {
     this.#loader = await ui.createLoader();
   }
 
@@ -430,15 +384,24 @@ export default class Player extends Widget {
       throw new Error("Invalid source: Expected an object.");
     }
 
+    source.id = getRandomId();
     this.#currentSource = source;
     this.#playlist = null;
-    this.#initializeVideo();
+    this.#createVideo();
   }
 
   async #createPlaylist(playlist, defaultSource) {
     try {
       const { default: PlayList } = await import("./playlist.js");
       const { sources, ...playlistOptions } = playlist;
+
+      if (this.#enableStorage && this.#isStorageDefined) {
+        const state = this.#storageTracker.getState();
+        const { currentIndex, loop } = state.playlist;
+
+        playlistOptions.startIndex = currentIndex;
+        playlistOptions.loop = loop;
+      }
 
       return new PlayList({
         player: this,
@@ -451,7 +414,7 @@ export default class Player extends Widget {
     }
   }
 
-  async #initializeVideo() {
+  async #createVideo() {
     this.#video = await ui.createVideo({
       src: this.source.src,
       width: this.#width,
@@ -459,30 +422,32 @@ export default class Player extends Widget {
       volume: this.#volume,
       currentTime: this.source.currentTime,
       isMuted: this.#muted,
+      playbackRate: this.#playbackRate,
+      loopMode: this.#loopMode,
     });
 
-    this.#setupVideoEvents();
+    this.#setVideoEvents();
   }
 
-  async #initializeVideoStatusBar() {
+  async #createVideoStatusBar() {
     this.#videoStatusBar = await ui.createVideoStatusBar({
       player: this,
     });
   }
 
-  async #initializePlaybackControls() {
+  async #createPlaybackControls() {
     this.#playbackControls = await ui.createPlaybackControls({
       player: this,
     });
   }
 
-  async #initializeVolumeControl() {
+  async #createVolumeControl() {
     this.#volumeControl = await ui.createVolumeControl({
       player: this,
     });
   }
 
-  #setupVideoEvents() {
+  #setVideoEvents() {
     this.#video.on("loadedMetaData", this.#onLoadedMetaData.bind(this));
     this.#video.on("timeUpdate", this.#onTimeUpdate.bind(this));
     this.#video.on("progress", this.#onProgress.bind(this));
@@ -490,6 +455,7 @@ export default class Player extends Widget {
     this.#video.on("pause", this.#onPause.bind(this));
     this.#video.on("waiting", this.#onWaiting.bind(this));
     this.#video.on("playing", this.#onPlaying.bind(this));
+    this.#video.on("ended", this.#onEnded.bind(this));
   }
 
   #isValidSource(source) {
@@ -508,18 +474,40 @@ export default class Player extends Widget {
         this.pause();
       });
     }
+
+    this.#savePlaylist(this.#playlist.currentIndex, this.#playlist.loop);
   }
 
   async #onVideoReady() {
     this.#controls = new PlayerControls(this);
+
     await this.#controls.createControls();
-    await this.#initializeVideoStatusBar();
-    await this.#initializePlaybackControls();
-    await this.#initializeVolumeControl();
+
     this.#isControlsReady = true;
+
+    await this.#createVideoStatusBar();
+    await this.#createPlaybackControls();
+    await this.#createVolumeControl();
 
     if (this.#autoplay) {
       this.play();
+    }
+
+    if (this.#enableStorage) {
+      if (this.#isStorageDefined) {
+        const times = this.#storageTracker.getState().times;
+
+        times.forEach((time, index) => {
+          this.sources[index].currentTime = time;
+        });
+
+        this.currentTime = this.source.currentTime;
+      } else {
+        const times = this.sources.map((source) => source.currentTime);
+        this.#storageTracker.patchState((state) => {
+          state.times = times;
+        });
+      }
     }
 
     this.emit("controlsReady");
@@ -548,11 +536,13 @@ export default class Player extends Widget {
   #onPlay() {
     if (!this.#isControlsReady) return;
     this.controls.buttons.play.icon = SVGIcons.PAUSE;
+    this.#storageTracker?.startCurrentTimeTracker();
   }
 
   #onPause() {
     if (!this.#isControlsReady) return;
     this.controls.buttons.play.icon = SVGIcons.PLAY;
+    this.#storageTracker?.stopCurrentTimeTracker();
   }
 
   #onWaiting() {
@@ -565,5 +555,26 @@ export default class Player extends Widget {
     if (!this.#isControlsReady) return;
     this.controls.buttons.play.show();
     this.loader.hide();
+  }
+
+  #onEnded() {
+    const currentSource = this.source;
+    const currentTime = currentSource.currentTime;
+
+    if (currentTime >= this.duration) {
+      currentSource.currentTime = 0;
+    }
+
+    if (!this.hasPlaylist() || (this.playlist.isEndOfList && !this.loop)) {
+      this.controls.buttons.play.hide();
+      this.controls.buttons.reload.show();
+      return;
+    }
+
+    this.playlist.next();
+
+    if (this.playlist.isEndOfList && !this.playlist.loop) {
+      this.controls.buttons.next.enabled = false;
+    }
   }
 }

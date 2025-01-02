@@ -3,114 +3,34 @@ import { Widget } from "../widget.js";
 export default class Video extends Widget {
   #hasAudio = true;
 
-  get hasAudio() {
-    return this.#hasAudio;
-  }
-
   #currentTime;
-
-  set currentTime(time) {
-    this.component?.setCurrentTime(time);
-  }
-
-  get currentTime() {
-    return this.#currentTime;
-  }
 
   #isPlaying = false;
 
-  get isPlaying() {
-    return this.#isPlaying;
-  }
-
-  #isMuted = false;
-
-  set muted(isMuted) {
-    this.#isMuted = isMuted;
-    this.emit("mutedChange", isMuted);
-  }
-
-  get muted() {
-    return this.#isMuted;
-  }
+  #muted = false;
 
   #src;
 
-  get src() {
-    return this.#src;
-  }
-
   #volume;
-
-  set volume(volume) {
-    this.#volume = volume;
-    this.emit("volumeChange", volume);
-  }
-
-  get volume() {
-    return this.#volume;
-  }
 
   #playbackRate = 1;
 
-  set playbackRate(playbackRate) {
-    this.#playbackRate = playbackRate;
-    this.emit("playbackRateChange", playbackRate);
-  }
-
-  get playbackRate() {
-    return this.#playbackRate;
-  }
-
-  #isLoop = false;
-
-  set loop(isLoop) {
-    this.#isLoop = isLoop;
-    this.emit("loopChange", isLoop);
-  }
-
-  get loop() {
-    return this.#isLoop;
-  }
+  #loop = false;
 
   #loopModes = ["none", "infinite", "once"];
 
-  get loopModes() {
-    return this.#loopModes;
-  }
-
   /**
-   * Especifica cuantas veces se repite el video si es un loop
+   * Especifica cuantas veces se repite el video si esta en modo "loop"
    * @type {"none" | "infinite" | "once"}
    * @default "none"
    */
   #loopMode = "none";
 
-  set loopMode(loopMode) {
-    this.#loopMode = loopMode;
-  }
-
-  get loopMode() {
-    return this.#loopMode;
-  }
-
   #duration;
-
-  get duration() {
-    return this.#duration;
-  }
 
   #width;
 
-  get width() {
-    return this.#width;
-  }
-
   #height;
-
-  get height() {
-    return this.#height;
-  }
 
   constructor({
     src,
@@ -119,6 +39,8 @@ export default class Video extends Widget {
     volume = 1,
     currentTime = 0,
     isMuted = false,
+    playbackRate = 1,
+    loopMode = "none",
   }) {
     super();
     if (!src) throw new Error("VideoWidget: src must be provided");
@@ -126,8 +48,10 @@ export default class Video extends Widget {
     this.#width = width;
     this.#height = height;
     this.#volume = volume;
-    this.#isMuted = isMuted;
+    this.#muted = isMuted;
     this.#currentTime = currentTime;
+    this.#playbackRate = playbackRate;
+    this.#loopMode = loopMode;
 
     this.on("play", () => {
       this.#isPlaying = true;
@@ -148,6 +72,86 @@ export default class Video extends Widget {
     this.on("audioDetected", (hasAudio) => {
       this.#hasAudio = hasAudio;
     });
+  }
+
+  get hasAudio() {
+    return this.#hasAudio;
+  }
+
+  set currentTime(time) {
+    this.component?.setCurrentTime(time);
+  }
+
+  get currentTime() {
+    return this.#currentTime;
+  }
+
+  get isPlaying() {
+    return this.#isPlaying;
+  }
+
+  set muted(isMuted) {
+    this.#muted = isMuted;
+    this.emit("mutedChange", isMuted);
+  }
+
+  get muted() {
+    return this.#muted;
+  }
+
+  get src() {
+    return this.#src;
+  }
+
+  set volume(volume) {
+    this.#volume = volume;
+    this.emit("volumeChange", volume);
+  }
+
+  get volume() {
+    return this.#volume;
+  }
+
+  set playbackRate(playbackRate) {
+    this.#playbackRate = playbackRate;
+    this.emit("playbackRateChange", playbackRate);
+  }
+
+  get playbackRate() {
+    return this.#playbackRate;
+  }
+
+  set loop(isLoop) {
+    this.#loop = isLoop;
+    this.emit("loopChange", isLoop);
+  }
+
+  get loop() {
+    return this.#loop;
+  }
+
+  get loopModes() {
+    return this.#loopModes;
+  }
+
+  set loopMode(loopMode) {
+    this.#loopMode = loopMode;
+  }
+
+  get loopMode() {
+    return this.#loopMode;
+  }
+
+  get duration() {
+    return this.#duration;
+  }
+
+  get width() {
+    return this.#width;
+  }
+
+  get height() {
+    return this.#height;
   }
 
   onRefresh({ src, currentTime }) {

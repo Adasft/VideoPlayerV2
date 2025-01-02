@@ -69,6 +69,14 @@
         transform: scale(0.9);
       }
 
+      &.hide {
+        display: none;
+      }
+
+      &.show {
+        display: initial;
+      }
+
       &:disabled,
       &[disabled],
       &.disabled {
@@ -259,7 +267,7 @@
 
       .player-play-and-loader-wrapper {
         height: 60px;
-        .play-button {
+        .playback-status-button {
           --player-default-icon-size: 60px;
         }
       }
@@ -311,8 +319,8 @@
       &::after {
         background: linear-gradient(
           180deg,
-          rgba(0, 0, 0, 0.7) 0%,
-          rgba(0, 0, 0, 0.5) 35%,
+          rgba(0, 0, 0, 0.5) 0%,
+          rgba(0, 0, 0, 0.3) 35%,
           rgba(0, 0, 0, 0.1) 75%,
           rgba(0, 0, 0, 0) 100%
         );

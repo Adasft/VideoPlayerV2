@@ -49,6 +49,70 @@ export class MultiTrackManager {
     });
   }
 
+  /**
+   * Rasterizes the track bars based on the direction and mode.
+   * If the direction is "next", it rasterizes the track bars in the next direction.
+   * If the direction is "prev", it rasterizes the track bars in the previous direction.
+   * If the mode is "complete", it completes the track bar.
+   * If the mode is "reset", it resets the track bar.
+   *
+   * @param {{
+   *  direction: "next" | "prev",
+   *  mode: "complete" | "reset",
+   *  barName: "progress" | "indicator" | "buffer",
+   *  activeTrack: ChapteredTrack
+   * }} options - The options for rasterizing the track bars.
+   */
+  rasterizeTrackBar({
+    direction,
+    mode,
+    barName = this.#tracksInCache.progress.barName,
+    activeTrack = this.#tracksInCache.progress.value,
+  }) {
+    if (!["next", "prev"].includes(direction)) {
+      throw new Error("Invalid direction. Use 'next' or 'prev'.");
+    }
+
+    const tracksToRasterize = this.#getTracksInDirection(
+      activeTrack,
+      direction
+    );
+
+    for (const track of tracksToRasterize) {
+      this.#resetBars(track, barName, mode);
+    }
+  }
+
+  getProgressCurrentTrack() {
+    return this.#getCurrentTrack("progress", this.#slider.getValue());
+  }
+
+  getBufferCurrentTrack() {
+    return this.#getCurrentTrack(
+      "buffer",
+      this.#slider.getBufferProgress() * this.#slider.max
+    );
+  }
+
+  getIndicatorCurrentTrack() {
+    return this.#getCurrentTrack("indicator", this.#slider.getIndicatorValue());
+  }
+
+  clearIndicatorTrack() {
+    this.#tracksInCache.indicator.shouldUpdate = false;
+    this.#tracksInCache.indicator.value = null;
+  }
+
+  clearTracks() {
+    for (const track of this.#chapteredTracksList) {
+      track.destroy();
+    }
+
+    this.#tracksInCache.progress.value = null;
+    this.#tracksInCache.buffer.value = null;
+    this.#tracksInCache.indicator.value = null;
+  }
+
   #rasterizeTracks(cache, oldActiveChapteredTrack) {
     const [direction, mode] =
       oldActiveChapteredTrack?.getIndex() < cache.value.getIndex() ||
@@ -154,65 +218,5 @@ export class MultiTrackManager {
     }
 
     return this.#getActiveChapteredTrack(value, cache);
-  }
-
-  /**
-   * Rasterizes the track bars based on the direction and mode.
-   * If the direction is "next", it rasterizes the track bars in the next direction.
-   * If the direction is "prev", it rasterizes the track bars in the previous direction.
-   * If the mode is "complete", it completes the track bar.
-   * If the mode is "reset", it resets the track bar.
-   *
-   * @param {{
-   *  direction: "next" | "prev",
-   *  mode: "complete" | "reset",
-   *  barName: "progress" | "indicator" | "buffer",
-   *  activeTrack: ChapteredTrack
-   * }} options - The options for rasterizing the track bars.
-   */
-  rasterizeTrackBar({
-    direction,
-    mode,
-    barName = this.#tracksInCache.progress.barName,
-    activeTrack = this.#tracksInCache.progress.value,
-  }) {
-    if (!["next", "prev"].includes(direction)) {
-      throw new Error("Invalid direction. Use 'next' or 'prev'.");
-    }
-
-    const tracksToRasterize = this.#getTracksInDirection(
-      activeTrack,
-      direction
-    );
-
-    for (const track of tracksToRasterize) {
-      this.#resetBars(track, barName, mode);
-    }
-  }
-
-  getProgressCurrentTrack() {
-    return this.#getCurrentTrack("progress", this.#slider.getValue());
-  }
-
-  getBufferCurrentTrack() {
-    return this.#getCurrentTrack(
-      "buffer",
-      this.#slider.getBufferProgress() * this.#slider.max
-    );
-  }
-
-  getIndicatorCurrentTrack() {
-    return this.#getCurrentTrack("indicator", this.#slider.getIndicatorValue());
-  }
-
-  clearIndicatorTrack() {
-    this.#tracksInCache.indicator.shouldUpdate = false;
-    this.#tracksInCache.indicator.value = null;
-  }
-
-  clearTracks() {
-    for (const track of this.#chapteredTracksList) {
-      track.destroy();
-    }
   }
 }

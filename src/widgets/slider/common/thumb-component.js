@@ -8,15 +8,9 @@ export class SliderThumbComponent extends Component {
     this.#init();
   }
 
-  #init() {
-    this.thumb.on("move", (progress) => {
-      this.css({
-        left: `calc(${progress * 100}% - var(--player-slider-thumb-size) / 2)`,
-      });
-    });
-
-    this.thumb.on("visibilityChange", (isVisible) => {
-      isVisible ? this.show() : this.hide();
+  createElement() {
+    return Dom.elm("div", {
+      class: "slider-thumb",
     });
   }
 
@@ -28,9 +22,18 @@ export class SliderThumbComponent extends Component {
     }
   }
 
-  createElement() {
-    return Dom.elm("div", {
-      class: "slider-thumb",
+  onMove(progress) {
+    this.css({
+      left: `calc(${progress * 100}% - var(--player-slider-thumb-size) / 2)`,
     });
+  }
+
+  onVisibilityChange(isVisible) {
+    isVisible ? this.show() : this.hide();
+  }
+
+  #init() {
+    this.thumb.on("move", this.onMove.bind(this));
+    this.thumb.on("visibilityChange", this.onVisibilityChange.bind(this));
   }
 }

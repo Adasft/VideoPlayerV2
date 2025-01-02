@@ -97,8 +97,9 @@ export default class VideoComponent extends Component {
 
   onCanPlay() {
     const { video } = this;
+    console.log("onCanPlay");
     video.emit("canPlay");
-    this.video.emit("audioDetected", this.#hasAudio());
+    video.emit("audioDetected", this.#hasAudio());
   }
 
   onTimeUpdate() {
@@ -140,7 +141,7 @@ export default class VideoComponent extends Component {
     this.#bindEvent("waiting", this.onWaiting.bind(this));
     this.#bindEvent("playing", this.onPlaying.bind(this));
     this.#bindEvent("loadedmetadata", this.onLoadedMetaData.bind(this));
-    this.#bindEvent("canplaythrough", this.onCanPlay.bind(this));
+    // this.#bindEvent("canplaythrough", this.onCanPlay.bind(this));
     this.#bindEvent("timeupdate", this.onTimeUpdate.bind(this));
     this.#bindEvent("pause", this.onPause.bind(this));
     this.#bindEvent("play", this.onPlay.bind(this));

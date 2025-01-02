@@ -250,6 +250,15 @@ const SVG_CHAPTERS_ICON = /* html */ `
   <path d="M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
 </svg>`;
 
+const SVG_RELOAD_ICON = /* html */ `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  class="icon icon-tabler icons-tabler-outline icon-tabler-reload">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M19.933 13.041a8 8 0 1 1 -9.925 -8.788c3.899 -1 7.935 1.007 9.425 4.747" />
+  <path d="M20 4v5h-5" /></svg>
+`;
+
 export class SVGIcon {
   #isFilled;
   #svgContent;
@@ -324,4 +333,6 @@ export default class SVGIcons {
   static PLAYLIST = new SVGIcon(SVG_PLAYLIST_ICON);
 
   static CHAPTERS = new SVGIcon(SVG_CHAPTERS_ICON);
+
+  static RELOAD = new SVGIcon(SVG_RELOAD_ICON);
 }

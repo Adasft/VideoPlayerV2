@@ -7,17 +7,17 @@ export default class LoaderComponent extends Component {
     this.#init();
   }
 
+  createElement() {
+    return Dom.elm("div", {
+      class: "loader",
+    });
+  }
+
   #init() {
     this.loader.on("visibilityChange", (isVisible) => {
       this.css({
         display: isVisible ? "block" : "none",
       });
-    });
-  }
-
-  createElement() {
-    return Dom.elm("div", {
-      class: "loader",
     });
   }
 }

@@ -8,10 +8,6 @@ export default class StepSlider extends Slider {
    */
   #steps;
 
-  get steps() {
-    return this.#steps;
-  }
-
   /**
    * Indica si se deben mostrar los pasos o no.
    *
@@ -19,20 +15,12 @@ export default class StepSlider extends Slider {
    */
   #showSteps;
 
-  get showSteps() {
-    return this.#showSteps;
-  }
-
   /**
    * Indica si se deben mostrar las etiquetas o no.
    *
    * @type {boolean}
    */
   #showLabels;
-
-  get showLabels() {
-    return this.#showLabels;
-  }
 
   /**
    * Cache para no llamar a setValue si el valor actual no cambia
@@ -61,52 +49,16 @@ export default class StepSlider extends Slider {
     this.createTrack();
   }
 
-  /**
-   * Devuelve un array con los pasos de inicio y fin en los que cae el valor actual.
-   *
-   * @param {number} value - El valor actual del slider.
-   * @returns {[number | undefined, number | undefined]} - El array con los pasos de inicio y fin en los que cae el valor actual.
-   */
-  #getStepRange(value) {
-    return this.#steps.filter(
-      (step, index) =>
-        (step <= value && this.#steps[index + 1] > value) ||
-        (this.#steps[index - 1] <= value && step > value)
-    );
+  get steps() {
+    return this.#steps;
   }
 
-  /**
-   * Calcula la proximidad del valor actual en relación con los pasos de inicio y fin.
-   *
-   * @param {number} value - El valor actual del slider.
-   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
-   * @param {number} endStep - El paso de fin en el que cae el valor actual.
-   * @returns {number} - La proximidad del valor actual en relación con los pasos de inicio y fin.
-   */
-  #calculateStepProximity(value, startStep, endStep) {
-    const stepDiff = endStep - startStep;
-    return (stepDiff - (value - startStep)) / stepDiff;
+  get showSteps() {
+    return this.#showSteps;
   }
 
-  /**
-   * Llama a setValue si el valor actual cambia y los pasos de inicio y fin no han sido tratados previamente.
-   *
-   * @param {number} value - El valor actual del slider.
-   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
-   * @param {number} endStep - El paso de fin en el que cae el valor actual.
-   */
-  #triggerSetValueForChanges(value, startStep, endStep) {
-    const stepProximity = this.#calculateStepProximity(
-      value,
-      startStep,
-      endStep
-    );
-    const newValue = stepProximity < 0.5 ? endStep : startStep;
-
-    // Solo llama a super.setValue si el valor actual cambia
-    if (this.getValue() !== newValue || this.#stepTreatedCache.length === 0) {
-      super.setValue(newValue);
-    }
+  get showLabels() {
+    return this.#showLabels;
   }
 
   /**
@@ -159,5 +111,53 @@ export default class StepSlider extends Slider {
     this.createTrack();
     this.emit("refresh");
     this.setValue(value);
+  }
+
+  /**
+   * Devuelve un array con los pasos de inicio y fin en los que cae el valor actual.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @returns {[number | undefined, number | undefined]} - El array con los pasos de inicio y fin en los que cae el valor actual.
+   */
+  #getStepRange(value) {
+    return this.#steps.filter(
+      (step, index) =>
+        (step <= value && this.#steps[index + 1] > value) ||
+        (this.#steps[index - 1] <= value && step > value)
+    );
+  }
+
+  /**
+   * Calcula la proximidad del valor actual en relación con los pasos de inicio y fin.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
+   * @param {number} endStep - El paso de fin en el que cae el valor actual.
+   * @returns {number} - La proximidad del valor actual en relación con los pasos de inicio y fin.
+   */
+  #calculateStepProximity(value, startStep, endStep) {
+    const stepDiff = endStep - startStep;
+    return (stepDiff - (value - startStep)) / stepDiff;
+  }
+
+  /**
+   * Llama a setValue si el valor actual cambia y los pasos de inicio y fin no han sido tratados previamente.
+   *
+   * @param {number} value - El valor actual del slider.
+   * @param {number} startStep - El paso de inicio en el que cae el valor actual.
+   * @param {number} endStep - El paso de fin en el que cae el valor actual.
+   */
+  #triggerSetValueForChanges(value, startStep, endStep) {
+    const stepProximity = this.#calculateStepProximity(
+      value,
+      startStep,
+      endStep
+    );
+    const newValue = stepProximity < 0.5 ? endStep : startStep;
+
+    // Solo llama a super.setValue si el valor actual cambia
+    if (this.getValue() !== newValue || this.#stepTreatedCache.length === 0) {
+      super.setValue(newValue);
+    }
   }
 }

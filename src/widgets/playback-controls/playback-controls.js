@@ -4,6 +4,12 @@ import SVGIcons from "../../ui/icons.js";
 export default class PlaybackControls extends Widget {
   #player;
 
+  constructor({ player }) {
+    super();
+    this.#player = player;
+    this.#initializeControlsEvents();
+  }
+
   get player() {
     return this.#player;
   }
@@ -12,17 +18,11 @@ export default class PlaybackControls extends Widget {
     return this.#player.controls;
   }
 
-  constructor({ player }) {
-    super();
-    this.#player = player;
-    this.#initializeControlsEvents();
-  }
-
   onRefresh() {
     this.emit("refresh");
   }
 
-  #setupPlayButtonEvents() {
+  #setPlayButtonEvents() {
     const { buttons } = this.controls;
 
     buttons.play.on("click", () => {
@@ -34,9 +34,15 @@ export default class PlaybackControls extends Widget {
         buttons.play.icon = SVGIcons.PAUSE;
       }
     });
+
+    buttons.reload.on("click", () => {
+      this.player.play();
+      buttons.play.show();
+      buttons.reload.hide();
+    });
   }
 
-  #setupSkipButtonsEvents() {
+  #setSkipButtonsEvents() {
     const { buttons } = this.controls;
 
     buttons.skipBack.on("click", () => {
@@ -48,24 +54,39 @@ export default class PlaybackControls extends Widget {
     });
   }
 
-  #setupPlaylistButtonsEvents() {
+  #setPlaylistButtonsEvents() {
     const { buttons } = this.controls;
 
     buttons.prev.on("click", () => {
       this.player.playlist.prev();
+
+      if (this.player.playlist.size > 1) {
+        buttons.next.enabled = true;
+      }
     });
 
     buttons.next.on("click", () => {
+      const currentSource = this.player.source;
+      const currentTime = currentSource.currentTime;
+
+      if (currentTime >= this.player.duration) {
+        currentSource.currentTime = 0;
+      }
+
       this.player.playlist.next();
+
+      if (this.player.playlist.isEndOfList && !this.player.playlist.loop) {
+        buttons.next.enabled = false;
+      }
     });
   }
 
   #initializeControlsEvents() {
-    this.#setupPlayButtonEvents();
-    this.#setupSkipButtonsEvents();
+    this.#setPlayButtonEvents();
+    this.#setSkipButtonsEvents();
 
     if (this.player.hasPlaylist()) {
-      this.#setupPlaylistButtonsEvents();
+      this.#setPlaylistButtonsEvents();
     }
   }
 }

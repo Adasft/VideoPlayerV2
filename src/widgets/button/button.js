@@ -21,6 +21,7 @@ export default class Button extends Widget {
   }
 
   set enabled(isEnabled) {
+    if (this.#isEnabled === isEnabled) return;
     this.#isEnabled = isEnabled;
     this.emit("enabledChange", isEnabled);
   }

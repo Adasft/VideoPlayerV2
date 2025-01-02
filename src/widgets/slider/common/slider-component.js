@@ -36,6 +36,12 @@ export default class SliderComponent extends Component {
     this.#init();
   }
 
+  createElement() {
+    return Dom.elm("div", {
+      class: "slider-container",
+    });
+  }
+
   disableHoverEffects(canUnbindGlobalEvents = true) {
     if (this.slider.isHoverGrowthEnabled()) {
       this.removeClass("hover");
@@ -142,12 +148,6 @@ export default class SliderComponent extends Component {
 
   onMounted() {
     this.slider.initializeValue();
-  }
-
-  createElement() {
-    return Dom.elm("div", {
-      class: "slider-container",
-    });
   }
 
   #init() {

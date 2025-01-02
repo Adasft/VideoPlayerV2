@@ -1,11 +1,16 @@
 import { Dom } from "../../dom/dom-utils.js";
-// import { Widget } from "../widget.js";
 import { Component } from "../component.js";
 
 export default class ButtonComponent extends Component {
   constructor(widget) {
     super(widget);
     this.#init();
+  }
+
+  createElement() {
+    return Dom.elm("button", {
+      class: "player-button-control",
+    });
   }
 
   onClick = () => {
@@ -41,16 +46,6 @@ export default class ButtonComponent extends Component {
     });
   }
 
-  createElement() {
-    return Dom.elm("button", {
-      class: "player-button-control",
-    });
-  }
-
-  #setIcon(icon) {
-    this.element.setHTML(icon.getHTML());
-  }
-
   #init() {
     const { button } = this;
 
@@ -67,5 +62,9 @@ export default class ButtonComponent extends Component {
     button.on("visibilityChange", this.onVisibilityChange.bind(this));
 
     this.on("click", this.onClick);
+  }
+
+  #setIcon(icon) {
+    this.element.setHTML(icon.getHTML());
   }
 }

@@ -1,4 +1,4 @@
-import { shuffle, orderBy } from "../../utils.js";
+import { shuffle, orderBy, getRandomId } from "../../utils.js";
 
 /**
  * Formato de un source:
@@ -30,36 +30,45 @@ export default class PlayList {
   #player;
   #sources;
   #currentIndex;
-  #loop;
+  loop;
 
   constructor({ player, sources, startIndex = 0, loop = false }) {
     this.#player = player;
     this.#sources = this.#mapSourceByIndex(sources);
     this.#currentIndex = startIndex;
-    this.#loop = loop;
+    this.loop = loop;
 
     this.#player.on("activeRandomPlaybackChanged", (isShuffleActive) =>
       this.#reorganizeSources(isShuffleActive)
     );
   }
 
-  isEndOfList() {
-    return this.#currentIndex === this.size() - 1;
+  get sources() {
+    return this.#sources;
   }
 
-  isStartOfList() {
+  get isEndOfList() {
+    return this.#currentIndex === this.size - 1;
+  }
+
+  get isStartOfList() {
     return this.#currentIndex === 0;
   }
 
-  size() {
+  get size() {
     return this.#sources.length;
   }
 
-  getCurrentSource() {
+  get currentSource() {
     return this.#sources[this.#currentIndex];
   }
 
-  getCurrentIndex() {
+  set currentIndex(index) {
+    this.#currentIndex = Math.max(0, Math.min(index, this.size - 1));
+    this.#player.emit("sourceChange", this.currentSource);
+  }
+
+  get currentIndex() {
     return this.#currentIndex;
   }
 
@@ -79,39 +88,39 @@ export default class PlayList {
   }
 
   next() {
-    if (this.isEndOfList() && !this.#loop) {
+    if (this.isEndOfList && !this.loop) {
       return;
     }
 
     this.#currentIndex++;
 
-    if (this.#currentIndex >= this.size()) {
+    if (this.#currentIndex >= this.size) {
       this.#currentIndex = 0;
     }
 
-    this.#player.emit("sourceChange", this.getCurrentSource());
+    this.#player.emit("sourceChange", this.currentSource);
   }
 
   prev() {
     if (
       this.#player.currentTime >= 5 ||
-      (!this.#loop && this.#currentIndex === 0)
+      (!this.loop && this.#currentIndex === 0)
     ) {
       this.#player.currentTime = 0;
       return;
     }
 
-    if (this.isStartOfList() && !this.#loop) {
+    if (this.isStartOfList && !this.loop) {
       return;
     }
 
     this.#currentIndex--;
 
     if (this.#currentIndex < 0) {
-      this.#currentIndex = this.size() - 1;
+      this.#currentIndex = this.size - 1;
     }
 
-    this.#player.emit("sourceChange", this.getCurrentSource());
+    this.#player.emit("sourceChange", this.currentSource);
   }
   /**
    * interface Source {
@@ -127,6 +136,7 @@ export default class PlayList {
 
   #mapSourceByIndex(sources) {
     return sources.map((source, index) => ({
+      id: getRandomId(),
       src: source.src,
       title: source.title ?? "Untitled",
       poster: source.poster,

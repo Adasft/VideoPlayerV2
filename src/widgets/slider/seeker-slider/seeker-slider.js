@@ -69,20 +69,6 @@ export default class SeekerSlider extends Slider {
     this.on("mouseMove", this.setIndicatorValue.bind(this));
   }
 
-  #createMultiTrackManager(chapters) {
-    this.track?.destroy();
-    this.#multiTrackManager?.clearTracks();
-    this.#multiTrackManager = new MultiTrackManager({
-      slider: this,
-      chapters,
-    });
-  }
-
-  #resetMultiTrackManager() {
-    this.#multiTrackManager?.clearTracks();
-    this.#multiTrackManager = null;
-  }
-
   createTrack() {
     if (this.hasChapters()) {
       this.track = this.#multiTrackManager.chapteredTracksList;
@@ -102,7 +88,7 @@ export default class SeekerSlider extends Slider {
     this.#indicatorValue = this.clampValue(value);
     if (!this.indicatorTrack) return;
     const relativeProgress = this.indicatorTrack.calculateRelativeProgress(
-      value / this.max
+      this.#indicatorValue / this.max
     );
 
     this.indicatorTrack.bars.indicator.setProgress(relativeProgress);
@@ -159,5 +145,19 @@ export default class SeekerSlider extends Slider {
     this.createTrack();
     this.emit("refresh");
     this.setValue(value);
+  }
+
+  #createMultiTrackManager(chapters) {
+    this.track?.destroy();
+    this.#multiTrackManager?.clearTracks();
+    this.#multiTrackManager = new MultiTrackManager({
+      slider: this,
+      chapters,
+    });
+  }
+
+  #resetMultiTrackManager() {
+    this.#multiTrackManager?.clearTracks();
+    this.#multiTrackManager = null;
   }
 }

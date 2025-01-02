@@ -3,6 +3,7 @@ import SVGIcons from "../../ui/icons.js";
 
 export default class VolumeControl extends Widget {
   #player;
+  #lastVolume;
 
   get controls() {
     return this.#player.controls;
@@ -21,8 +22,10 @@ export default class VolumeControl extends Widget {
   constructor({ player }) {
     super();
     this.#player = player;
+    this.#lastVolume = this.#player.volume;
 
-    this.#initializeControlsEvents();
+    this.#setVolumenButtonEvents();
+    this.#setVolumeSliderEvents();
 
     this.player.video.on("audioDetected", this.onAudioDetected.bind(this));
   }
@@ -32,10 +35,39 @@ export default class VolumeControl extends Widget {
   }
 
   async onAudioDetected(hasAudio) {
-    console.log("onAudioDetected", hasAudio);
     await this.controls.createOrDestroyVolumeSlider();
+
+    if (!hasAudio) {
+      this.controls.buttons.volume.icon = SVGIcons.VOLUME_MUTED;
+    }
+
+    this.#setVolumeSliderEvents();
     this.enableVolumeButton(hasAudio);
     this.emit("audioDetected", hasAudio);
+  }
+
+  onVolumeChange(volume) {
+    const { buttons } = this.controls;
+    if (this.player.muted) this.player.muted = false;
+    console.log("onVolumeChange", volume);
+    this.player.volume = volume;
+    buttons.volume.icon = this.#getVolumeIcon(volume);
+  }
+
+  onMutedChange() {
+    const { sliders, buttons } = this.controls;
+    if (this.player.volume > 0) {
+      this.#lastVolume = this.player.volume;
+    }
+
+    const isMuted = !this.player.muted;
+    const volume = isMuted ? 0 : this.#lastVolume;
+
+    sliders.volume.setValue(volume);
+
+    this.player.muted = isMuted;
+
+    buttons.volume.icon = this.#getVolumeIcon(volume);
   }
 
   #getVolumeIcon(volume) {
@@ -43,29 +75,14 @@ export default class VolumeControl extends Widget {
     return this.#volumeLevels[volumeLevel];
   }
 
-  #initializeControlsEvents() {
-    const { sliders, buttons } = this.controls;
-    let lastVolume;
+  #setVolumeSliderEvents() {
+    const { sliders } = this.controls;
+    if (!this.player.hasAudio) return;
+    sliders.volume.on("valueChanged", this.onVolumeChange.bind(this));
+  }
 
-    sliders.volume.on("valueChanged", (value) => {
-      if (this.player.muted) this.player.muted = false;
-      this.player.volume = value;
-      buttons.volume.icon = this.#getVolumeIcon(value);
-    });
-
-    buttons.volume.on("click", () => {
-      if (this.player.volume > 0) {
-        lastVolume = this.player.volume;
-      }
-
-      const isMuted = !this.player.muted;
-      const volume = isMuted ? 0 : lastVolume;
-
-      sliders.volume.setValue(volume);
-
-      this.player.muted = isMuted;
-
-      buttons.volume.icon = this.#getVolumeIcon(volume);
-    });
+  #setVolumenButtonEvents() {
+    const { buttons } = this.controls;
+    buttons.volume.on("click", this.onMutedChange.bind(this));
   }
 }

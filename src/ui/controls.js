@@ -6,10 +6,6 @@ class ControlsGroup {
    */
   #name;
 
-  get name() {
-    return this.#name;
-  }
-
   /**
    * Funcion para crear el control
    *
@@ -17,75 +13,17 @@ class ControlsGroup {
    */
   #createControl;
 
-  get createControl() {
-    return this.#createControl;
-  }
-
   constructor(group) {
     this.#name = group.name;
     this.#createControl = group.createControl;
   }
 
-  #forEachControls(controls, callback) {
-    const pendingPrimises = [];
-    const controlsEntries = Object.entries(controls);
-    for (const [name, options] of controlsEntries) {
-      if (controls[name] === null) {
-        return;
-      }
-
-      pendingPrimises.push(callback({ name, options }));
-    }
-
-    return Promise.all(pendingPrimises);
+  get name() {
+    return this.#name;
   }
 
-  #createConditionalControls = ({ name, options }) => {
-    if (this.hasOwnProperty(name) && !!this[name]) {
-      return;
-    }
-
-    const control = this.#defineControl(name, options);
-
-    control.then((control) => {
-      console.log("createConditionalControls", {
-        this: { ...this },
-        name,
-        options,
-        control,
-      });
-    });
-
-    return control;
-  };
-
-  #destroyConditionalControls = ({ name }) => {
-    if (!this.hasOwnProperty(name) || !this[name]) {
-      return;
-    }
-
-    const control = this[name];
-    control.destroy();
-    this[name] = null;
-    return new Promise((resolve) => resolve());
-  };
-
-  /**
-   * Crea un control y lo agrega al grupo
-   *
-   * @param {string} name Nombre del control
-   * @param {Object<string, any>} options Opciones del control
-   * @returns {Promise<Widget>}
-   */
-  async #defineControl(name, options) {
-    try {
-      const control = await this.createControl(options, name);
-      Object.assign(this, { [name]: control });
-      return new Promise((resolve) => resolve(control));
-    } catch (error) {
-      console.error("Error creating control:", error);
-      throw error;
-    }
+  get createControl() {
+    return this.#createControl;
   }
 
   /**
@@ -128,6 +66,86 @@ class ControlsGroup {
           : this.#destroyConditionalControls
       );
     };
+  }
+
+  async #forEachControls(controls, callback) {
+    const controlsEntries = Object.entries(controls);
+
+    const results = await Promise.allSettled(
+      controlsEntries.map(([name, options]) =>
+        callback({ name, options }).catch((error) => {
+          console.error(`Error processing control "${name}":`, error);
+        })
+      )
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(
+          `Control "${controlsEntries[index][0]}" failed:`,
+          result.reason
+        );
+      }
+    });
+  }
+
+  #createConditionalControls = (() => {
+    // Mapa para rastrear controles en proceso de creación
+    const pendingControls = new Map();
+
+    return async ({ name, options }) => {
+      if (this.hasOwnProperty(name) && !!this[name]) {
+        return Promise.resolve(this[name]);
+      }
+
+      if (pendingControls.has(name)) {
+        return pendingControls.get(name);
+      }
+
+      try {
+        const creationPromise = this.#defineControl(name, options);
+
+        pendingControls.set(name, creationPromise);
+
+        const control = await creationPromise;
+
+        pendingControls.delete(name);
+        return control;
+      } catch (error) {
+        pendingControls.delete(name);
+        console.error(`Error creating control "${name}":`, error);
+        throw error;
+      }
+    };
+  })();
+
+  #destroyConditionalControls = ({ name }) => {
+    if (!this.hasOwnProperty(name) || !this[name]) {
+      return Promise.resolve();
+    }
+
+    const control = this[name];
+    control.destroy();
+    this[name] = null;
+    return Promise.resolve();
+  };
+
+  /**
+   * Crea un control y lo agrega al grupo
+   *
+   * @param {string} name Nombre del control
+   * @param {Object<string, any>} options Opciones del control
+   * @returns {Promise<Widget>}
+   */
+  async #defineControl(name, options) {
+    try {
+      const control = await this.createControl(options, name);
+      Object.assign(this, { [name]: control });
+      return control;
+    } catch (error) {
+      console.error("Error creating control:", error);
+      throw error;
+    }
   }
 }
 

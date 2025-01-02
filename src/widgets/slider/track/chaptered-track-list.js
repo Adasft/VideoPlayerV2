@@ -44,32 +44,6 @@ export class ChapteredTrackList extends Array {
     this.#addDefaultChapters();
   }
 
-  #createChapteredTrack(chapter, index) {
-    const range = {
-      start: chapter.start,
-      end: chapter.end,
-      limit: this.#limit,
-    };
-    const ratioWidth = (range.end - range.start) / this.#limit;
-    const chapteredTrack = new ChapteredTrack({
-      chapter,
-      index,
-      range,
-      ratioWidth,
-    });
-
-    chapteredTrack.addBar(new ProgressBar("indicator"));
-    chapteredTrack.addBar(new ProgressBar("buffer"));
-
-    return chapteredTrack;
-  }
-
-  #addDefaultChapters() {
-    this.#chapters.forEach((chapter) => {
-      this.add(chapter);
-    });
-  }
-
   /**
    * Iterates over the next chaptered tracks in the list.
    *
@@ -145,5 +119,31 @@ export class ChapteredTrackList extends Array {
       yield current;
       current = current.next;
     }
+  }
+
+  #createChapteredTrack(chapter, index) {
+    const range = {
+      start: chapter.start,
+      end: chapter.end,
+      limit: this.#limit,
+    };
+    const ratioWidth = (range.end - range.start) / this.#limit;
+    const chapteredTrack = new ChapteredTrack({
+      chapter,
+      index,
+      range,
+      ratioWidth,
+    });
+
+    chapteredTrack.addBar(new ProgressBar("indicator"));
+    chapteredTrack.addBar(new ProgressBar("buffer"));
+
+    return chapteredTrack;
+  }
+
+  #addDefaultChapters() {
+    this.#chapters.forEach((chapter) => {
+      this.add(chapter);
+    });
   }
 }

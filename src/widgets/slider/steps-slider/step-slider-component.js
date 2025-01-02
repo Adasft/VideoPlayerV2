@@ -10,6 +10,43 @@ export default class StepsSliderComponent extends SliderComponent {
     this.#init();
   }
 
+  onValueChanged(step) {
+    const { slider } = this;
+    const stepIndex = slider.getStepIndex(step);
+    const activateStepsLeft =
+      this.#lastStepIndex < stepIndex || this.#lastStepIndex === null;
+
+    if (activateStepsLeft) {
+      for (let i = 0; i < stepIndex; i++) {
+        this.#getStepElementByIndex(i).addClass("active");
+      }
+    } else {
+      for (let i = stepIndex; i < this.#stepElementsSet.length; i++) {
+        this.#getStepElementByIndex(i).removeClass("active");
+      }
+    }
+
+    this.#selectStep(stepIndex);
+
+    this.#lastStepIndex = stepIndex;
+  }
+
+  onRefresh() {
+    super.onRefresh();
+
+    this.#removeSteps();
+    this.slider.off("valueChanged");
+    this.#createSteps();
+    this.#createStepsLabels();
+  }
+
+  #init() {
+    this.element.addClass("steps-slider");
+
+    this.#createSteps();
+    this.#createStepsLabels();
+  }
+
   #getStepElementByIndex(index) {
     return this.#stepElementsSet.at(index);
   }
@@ -35,7 +72,7 @@ export default class StepsSliderComponent extends SliderComponent {
       this.#stepElementsSet.push(stepElement);
     }
 
-    this.slider.on("valueChanged", this.#onValueChanged.bind(this));
+    this.slider.on("valueChanged", this.onValueChanged.bind(this));
   }
 
   #removeSteps() {
@@ -80,42 +117,5 @@ export default class StepsSliderComponent extends SliderComponent {
     }
 
     currentStepElement.addClass("selected");
-  }
-
-  #onValueChanged(step) {
-    const { slider } = this;
-    const stepIndex = slider.getStepIndex(step);
-    const activateStepsLeft =
-      this.#lastStepIndex < stepIndex || this.#lastStepIndex === null;
-
-    if (activateStepsLeft) {
-      for (let i = 0; i < stepIndex; i++) {
-        this.#getStepElementByIndex(i).addClass("active");
-      }
-    } else {
-      for (let i = stepIndex; i < this.#stepElementsSet.length; i++) {
-        this.#getStepElementByIndex(i).removeClass("active");
-      }
-    }
-
-    this.#selectStep(stepIndex);
-
-    this.#lastStepIndex = stepIndex;
-  }
-
-  #init() {
-    this.element.addClass("steps-slider");
-
-    this.#createSteps();
-    this.#createStepsLabels();
-  }
-
-  onRefresh() {
-    super.onRefresh();
-
-    this.#removeSteps();
-    this.slider.off("valueChanged");
-    this.#createSteps();
-    this.#createStepsLabels();
   }
 }

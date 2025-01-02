@@ -22,7 +22,6 @@ export class Wrapper {
   }
 
   #insertChildToParent(child, insertMethod) {
-    console.log("insertChildToParent", child, child?.isConnected);
     if (!child || child.isConnected) {
       return this;
     }

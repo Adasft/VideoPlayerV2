@@ -5,13 +5,11 @@ import SVGIcons from "../../ui/icons.js";
 export default class VideoStatusBar extends Widget {
   #player;
 
-  get player() {
-    return this.#player;
-  }
-
-  get controls() {
-    return this.#player.controls;
-  }
+  #repeatModesIcons = {
+    none: SVGIcons.REPEAT,
+    infinite: SVGIcons.REPEAT,
+    once: SVGIcons.REPEAT_ONCE,
+  };
 
   constructor({ player }) {
     super();
@@ -21,6 +19,14 @@ export default class VideoStatusBar extends Widget {
     this.#player.video.on("pictureInPictureExit", () => {
       this.#togglePiPButtonActive(false);
     });
+  }
+
+  get player() {
+    return this.#player;
+  }
+
+  get controls() {
+    return this.#player.controls;
   }
 
   async onRefresh() {
@@ -101,6 +107,12 @@ export default class VideoStatusBar extends Widget {
     });
   }
 
+  #setInitialControlsState() {
+    const { buttons } = this.controls;
+    buttons.repeat.selected = this.player.loopMode !== "none";
+    buttons.repeat.icon = this.#repeatModesIcons[this.player.loopMode];
+  }
+
   #toggleRepeatMode() {
     const { video } = this.player;
     const { buttons } = this.controls;
@@ -109,15 +121,10 @@ export default class VideoStatusBar extends Widget {
     const currentMode = video.getCurrentLoopMode();
     const nextMode = (currentMode + 1) % modes.length;
 
-    video.loopMode = modes[nextMode];
+    this.player.loopMode = modes[nextMode];
     buttons.repeat.selected = nextMode !== 0;
-    buttons.repeat.icon =
-      modes[nextMode] === "infinite"
-        ? SVGIcons.REPEAT
-        : modes[nextMode] === "once"
-        ? SVGIcons.REPEAT_ONCE
-        : SVGIcons.REPEAT;
-    video.loop = nextMode !== 0;
+    buttons.repeat.icon = this.#repeatModesIcons[modes[nextMode]];
+    this.player.loop = nextMode !== 0;
   }
 
   #toggleActiveRandomPlayback() {
@@ -172,5 +179,6 @@ export default class VideoStatusBar extends Widget {
   #initializeControlsEvents() {
     this.#setupSeekerSliderEvents();
     this.#setupButtonsEvents();
+    this.#setInitialControlsState();
   }
 }

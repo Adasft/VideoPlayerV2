@@ -25,16 +25,21 @@ export default class PlaybackControlsComponent extends Component {
     this.append(buttons.skipForward.component);
   }
 
-  #createPlayAndLoaderWrapper() {
+  #createPlaybackStateControlsWrapper() {
     const { playbackControls } = this;
     const { buttons } = playbackControls.controls;
     const loaderComponent = playbackControls.player.loader.component;
+    const playComponent = buttons.play.component;
+    const reloadComponent = buttons.reload.component;
 
+    reloadComponent.hide();
     loaderComponent.hide();
-    buttons.play.component.addClass("play-button");
+    reloadComponent.addClass("playback-status-button");
+    playComponent.addClass("playback-status-button");
 
     return this.wrapper("div", "player-play-and-loader-wrapper")
-      .add(buttons.play.component)
+      .add(playComponent)
+      .add(reloadComponent)
       .add(loaderComponent);
   }
 
@@ -43,7 +48,7 @@ export default class PlaybackControlsComponent extends Component {
 
     return this.wrapper("div", "player-playback-buttons-wrapper")
       .add(buttons.prev?.component)
-      .add(this.#createPlayAndLoaderWrapper())
+      .add(this.#createPlaybackStateControlsWrapper())
       .add(buttons.next?.component)
       .toRef(this.#ref.playbackButtonsWrapper);
   }

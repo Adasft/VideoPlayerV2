@@ -69,8 +69,8 @@ async function createWidget(paths, options) {
  *
  * @returns {Promise<Loader>}
  */
-export async function createLoader() {
-  return await createWidget(widgetPaths.loader);
+export function createLoader() {
+  return createWidget(widgetPaths.loader);
 }
 
 /**
@@ -80,8 +80,8 @@ export async function createLoader() {
  * @param {SVGIcon} options.icon - Icono del botón.
  * @returns {Promise<Button>}
  */
-export async function createButton(options) {
-  return await createWidget(widgetPaths.button, options);
+export function createButton(options) {
+  return createWidget(widgetPaths.button, options);
 }
 
 /**
@@ -91,8 +91,8 @@ export async function createButton(options) {
  * @param {string} options.text - Texto del componente.
  * @returns {Promise<TextView>}
  */
-export async function createTextView(options) {
-  return await createWidget(widgetPaths.textView, options);
+export function createTextView(options) {
+  return createWidget(widgetPaths.textView, options);
 }
 
 /**
@@ -107,8 +107,8 @@ export async function createTextView(options) {
  *
  * @returns {Promise<SeekerSlider>}
  */
-export async function createSeekerSlider(options) {
-  return await createWidget(widgetPaths.seekerSlider, options);
+export function createSeekerSlider(options) {
+  return createWidget(widgetPaths.seekerSlider, options);
 }
 
 /**
@@ -122,8 +122,8 @@ export async function createSeekerSlider(options) {
  *
  * @returns {Promise<StepsSlider>}
  */
-export async function createStepsSlider(options) {
-  return await createWidget(widgetPaths.stepSlider, options);
+export function createStepsSlider(options) {
+  return createWidget(widgetPaths.stepSlider, options);
 }
 
 /**
@@ -134,8 +134,8 @@ export async function createStepsSlider(options) {
  *
  * @returns {Promise<Slider>}
  */
-export async function createVolumeSlider({ volume }) {
-  return await createWidget(widgetPaths.volumeSlider, {
+export function createVolumeSlider({ volume }) {
+  return createWidget(widgetPaths.volumeSlider, {
     value: volume,
     min: 0,
     max: 1,
@@ -153,11 +153,13 @@ export async function createVolumeSlider({ volume }) {
  * @param {number} [options.volume=1] - Volumen del video.
  * @param {number} [options.currentTime=0] - Tiempo actual del video.
  * @param {boolean} [options.isMuted=false] - Indica si el video está silenciado.
+ * @param {number} [options.playbackRate=1] - Velocidad de reproducción del video.
+ * @param {"none" | "infinite" | "once"} [options.loopMode="none"] - Modo de bucle del video.
  *
  * @returns {Promise<Video>}
  */
-export async function createVideo(options) {
-  return await createWidget(widgetPaths.video, options);
+export function createVideo(options) {
+  return createWidget(widgetPaths.video, options);
 }
 
 /**
@@ -173,8 +175,8 @@ export async function createVideo(options) {
  *
  * @returns {Promise<VideoStatusBar>}
  */
-export async function createVideoStatusBar(options) {
-  return await createWidget(widgetPaths.videoStatusBar, options);
+export function createVideoStatusBar(options) {
+  return createWidget(widgetPaths.videoStatusBar, options);
 }
 
 /**
@@ -186,10 +188,10 @@ export async function createVideoStatusBar(options) {
  *
  * @returns {Promise<PlaybackControls>}
  */
-export async function createPlaybackControls(options) {
-  return await createWidget(widgetPaths.playbackControls, options);
+export function createPlaybackControls(options) {
+  return createWidget(widgetPaths.playbackControls, options);
 }
 
-export async function createVolumeControl(options) {
-  return await createWidget(widgetPaths.volumeControl, options);
+export function createVolumeControl(options) {
+  return createWidget(widgetPaths.volumeControl, options);
 }

@@ -15,21 +15,9 @@ export class Track extends Widget {
     progress: new ProgressBar(),
   };
 
-  get bars() {
-    return this.#bars;
-  }
-
   #range;
 
-  get range() {
-    return this.#range;
-  }
-
   #ratioWidth;
-
-  get ratioWidth() {
-    return this.#ratioWidth;
-  }
 
   constructor({ range, ratioWidth }) {
     super("track");
@@ -37,15 +25,27 @@ export class Track extends Widget {
     this.#ratioWidth = ratioWidth;
   }
 
+  get bars() {
+    return this.#bars;
+  }
+
+  get range() {
+    return this.#range;
+  }
+
+  get ratioWidth() {
+    return this.#ratioWidth;
+  }
+
   setProgress(progress) {
     this.#bars.progress.setProgress(progress);
   }
 
   calculateRelativeProgress(progress) {
-    return (
+    const relativeProgress =
       (progress * this.range.limit - this.range.start) /
-      (this.range.end - this.range.start)
-    );
+      (this.range.end - this.range.start);
+    return relativeProgress;
   }
 
   complete() {

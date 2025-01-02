@@ -14,6 +14,12 @@ export default class TextViewComponent extends Component {
     this.#init();
   }
 
+  createElement() {
+    return Dom.elm("div", {
+      class: "player-text-view",
+    });
+  }
+
   #init() {
     const { textView } = this;
     this.#textNode = Dom.text(textView.text);
@@ -21,12 +27,6 @@ export default class TextViewComponent extends Component {
 
     textView.on("change", (value) => {
       this.#textNode.setText(value);
-    });
-  }
-
-  createElement() {
-    return Dom.elm("div", {
-      class: "player-text-view",
     });
   }
 }

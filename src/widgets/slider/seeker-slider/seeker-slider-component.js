@@ -6,30 +6,6 @@ export default class SeekerSliderComponent extends SliderComponent {
     this.#init();
   }
 
-  #init() {
-    this.#toggleChaptersClass();
-    this.slider.on("trackChanged", this.onTrackChanged.bind(this));
-  }
-
-  #resetIndicatorTrackBars() {
-    const { slider } = this;
-
-    if (slider.hasChapters()) {
-      slider.multiTrackManager.rasterizeTrackBar({
-        direction: "prev",
-        mode: "reset",
-        barName: "indicator",
-        activeTrack: slider.indicatorTrack,
-      });
-    }
-    slider.indicatorTrack.bars.indicator.reset();
-    slider.clearIndicatorTrack();
-  }
-
-  #toggleChaptersClass() {
-    this.element.toggleClass("has-chapters", this.slider.hasChapters());
-  }
-
   disableHoverEffects(canUnbindGlobalEvents = true) {
     super.disableHoverEffects(canUnbindGlobalEvents);
     this.slider.track.component.element.removeClass("active");
@@ -55,5 +31,29 @@ export default class SeekerSliderComponent extends SliderComponent {
   onMouseDown({ clientX }) {
     super.onMouseDown({ clientX });
     this.#resetIndicatorTrackBars();
+  }
+
+  #init() {
+    this.#toggleChaptersClass();
+    this.slider.on("trackChanged", this.onTrackChanged.bind(this));
+  }
+
+  #resetIndicatorTrackBars() {
+    const { slider } = this;
+
+    if (slider.hasChapters()) {
+      slider.multiTrackManager.rasterizeTrackBar({
+        direction: "prev",
+        mode: "reset",
+        barName: "indicator",
+        activeTrack: slider.indicatorTrack,
+      });
+    }
+    slider.indicatorTrack.bars.indicator.reset();
+    slider.clearIndicatorTrack();
+  }
+
+  #toggleChaptersClass() {
+    this.element.toggleClass("has-chapters", this.slider.hasChapters());
   }
 }

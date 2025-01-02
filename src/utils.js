@@ -61,6 +61,14 @@ export function formatTime(seconds) {
 
 export function noop() {}
 
+export function debounce(callback, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => callback(...args), delay);
+  };
+}
+
 export function throttle(func, delay) {
   let lastCall = 0;
   return function (...args) {
