@@ -55,7 +55,6 @@ export default class VideoComponent extends Component {
   }
 
   onMutedChange(isMuted) {
-    console.log(isMuted);
     this.node.muted = isMuted;
   }
 

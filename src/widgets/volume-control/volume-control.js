@@ -19,7 +19,7 @@ export default class VolumeControl extends Widget {
     HIGH: SVGIcons.VOLUME_HIGH,
   };
 
-  constructor({ player }) {
+  constructor({ player, hasAudio }) {
     super();
     this.#player = player;
     this.#lastVolume = this.#player.volume;
@@ -27,20 +27,26 @@ export default class VolumeControl extends Widget {
     this.#setVolumenButtonEvents();
     this.#setVolumeSliderEvents();
 
-    this.player.video.on("audioDetected", this.onAudioDetected.bind(this));
+    console.log("hasAudio", hasAudio);
+    // if (hasAudio) {
+    this.toggleVolumeControls(hasAudio);
+    // }
+
+    // this.player.video.on("audioDetected", this.onAudioDetected.bind(this));
   }
 
   enableVolumeButton(isEnabled) {
     this.controls.buttons.volume.enabled = isEnabled;
   }
 
-  async onAudioDetected(hasAudio) {
+  async toggleVolumeControls(hasAudio) {
     await this.controls.createOrDestroyVolumeSlider();
 
     if (!hasAudio) {
       this.controls.buttons.volume.icon = SVGIcons.VOLUME_MUTED;
     }
 
+    console.log("onAudioDetected", hasAudio);
     this.#setVolumeSliderEvents();
     this.enableVolumeButton(hasAudio);
     this.emit("audioDetected", hasAudio);

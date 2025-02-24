@@ -26,8 +26,6 @@ import Storage from "./storage.js";
 export const STORAGE_KEY = "playerState";
 
 export default class PlayerStorageTracker {
-  static #INSTANCE;
-
   #videoCurrentTimeTracker;
 
   #stateCache = null;
@@ -47,14 +45,6 @@ export default class PlayerStorageTracker {
 
   constructor(player) {
     this.player = player;
-  }
-
-  static getInstance(player) {
-    if (!PlayerStorageTracker.#INSTANCE) {
-      PlayerStorageTracker.#INSTANCE = new PlayerStorageTracker(player);
-    }
-
-    return PlayerStorageTracker.#INSTANCE;
   }
 
   getState() {
@@ -82,16 +72,13 @@ export default class PlayerStorageTracker {
     this.#videoCurrentTimeTracker.stop();
   }
 
-  patchState(callback) {
-    const state = this.getState();
-    callback(state);
-    this.saveState(state);
-  }
-
   saveState(newState) {
     const state = this.getState();
 
-    Object.assign(state, newState);
+    Object.assign(
+      state,
+      typeof newState === "function" ? newState(state) : newState
+    );
 
     Storage.save(STORAGE_KEY, state);
     this.#stateCache = null;

@@ -2,15 +2,11 @@ import { Widget } from "../widget.js";
 import * as ui from "../../ui/ui-utils.js";
 import SVGIcons from "../../ui/icons.js";
 import PlayerControls from "./player-controls.js";
-import { formatTime, getRandomId, debounce } from "../../utils.js";
-import PlayerStorageTracker, {
-  STORAGE_KEY,
-} from "../../storage/player-tracker.js";
-import Storage from "../../storage/storage.js";
+import StorageManager from "./storage-manager.js";
+import { formatTime, getRandomId } from "../../utils.js";
 
 const VALID_SKIP_TIMES = [5, 10, 15, 20];
 const DEFAULT_SKIP_TIME = 5;
-const STORAGE_DELAY = 900;
 
 export default class Player extends Widget {
   #currentSource;
@@ -38,7 +34,7 @@ export default class Player extends Widget {
   #volumeControl;
   #controls;
 
-  #isStorageDefined = false;
+  #storageManager;
 
   constructor({
     source,
@@ -70,46 +66,24 @@ export default class Player extends Widget {
     this.#playbackRate = playbackRate;
 
     if (this.#enableStorage) {
-      this.#storageTracker = PlayerStorageTracker.getInstance(this);
-
-      this.#isStorageDefined =
-        Storage.has(STORAGE_KEY) && !this.#overwriteStorage;
-
-      if (this.#isStorageDefined) {
-        const state = this.#storageTracker.getState();
-        this.#muted = state.muted;
-        this.#volume = state.volume;
-        this.#playbackRate = state.playbackRate;
-        this.#loop = state.loop;
-        this.#loopMode = state.loopMode;
-        this.#autoplay = state.autoplay;
-      } else {
-        this.#storageTracker.saveState({
-          muted: this.#muted,
-          volume: this.#volume,
-          playbackRate: this.#playbackRate,
-          loop: this.#loop,
-          loopMode: this.#loopMode,
-          autoplay: this.#autoplay,
-        });
-      }
+      this.#storageManager = new StorageManager({
+        player: this,
+        overwriteStorage: this.#overwriteStorage,
+        syncPlayerState: (state) => {
+          this.#muted = state.muted;
+          this.#volume = state.volume;
+          this.#playbackRate = state.playbackRate;
+          this.#loop = state.loop;
+          this.#loopMode = state.loopMode;
+          this.#autoplay = state.autoplay;
+        },
+      });
     }
 
     this.#createLoader();
 
     if (playlist) {
-      this.once("playlistReady", () => {
-        this.#createVideo();
-
-        if (this.#enableStorage && !this.#storageTracker) {
-          this.#storageTracker.patchState((state) => {
-            state.playlist = {
-              currentIndex: this.#playlist.currentIndex,
-              loop: this.#loop,
-            };
-          });
-        }
-      });
+      this.once("playlistReady", this.#onPlaylistReady.bind(this));
     }
 
     this.on("sourceChange", this.#onSourceChange.bind(this));
@@ -173,23 +147,26 @@ export default class Player extends Widget {
   }
 
   set volume(volume) {
+    this.#volume = volume;
     this.video.volume = volume;
-    this.#saveVolume(volume);
+    this.#storageManager?.saveVolume(volume);
   }
 
   get volume() {
-    return this.video.volume;
+    return this.#volume;
   }
 
   set muted(isMuted) {
     this.#muted = isMuted;
     this.video.muted = isMuted;
-    this.#saveMuted(isMuted);
+    this.#storageManager?.saveMuted(isMuted);
   }
 
   get muted() {
     return this.#muted;
   }
+
+  // set
 
   get hasAudio() {
     return this.video.hasAudio;
@@ -214,7 +191,7 @@ export default class Player extends Widget {
   set loop(isLoop) {
     this.#loop = isLoop;
     this.video.loop = isLoop;
-    this.#saveLoop(isLoop);
+    this.#storageManager?.saveLoop(isLoop);
   }
 
   get loop() {
@@ -224,11 +201,15 @@ export default class Player extends Widget {
   set loopMode(loopMode) {
     this.#loopMode = loopMode;
     this.video.loopMode = loopMode;
-    this.#saveLoopMode(loopMode);
+    this.#storageManager?.saveLoopMode(loopMode);
   }
 
   get loopMode() {
     return this.#loopMode;
+  }
+
+  set autoplay(isAutoplay) {
+    this.#autoplay = isAutoplay;
   }
 
   get autoplay() {
@@ -246,7 +227,7 @@ export default class Player extends Widget {
   set playbackRate(playbackRate) {
     this.#playbackRate = playbackRate;
     this.#video.playbackRate = playbackRate;
-    this.#savePlaybackRate(playbackRate);
+    this.#storageManager?.savePlaybackRate(playbackRate);
   }
 
   get playbackRate() {
@@ -298,45 +279,6 @@ export default class Player extends Widget {
   skipForward() {
     this.video.currentTime += this.#skipTime;
   }
-
-  #saveVolume = debounce((volume) => {
-    this.#storageTracker?.saveState({
-      volume,
-    });
-  }, STORAGE_DELAY);
-
-  #saveMuted = debounce((muted) => {
-    this.#storageTracker?.saveState({
-      muted,
-    });
-  }, STORAGE_DELAY);
-
-  #savePlaybackRate = debounce((playbackRate) => {
-    this.#storageTracker?.saveState({
-      playbackRate,
-    });
-  }, STORAGE_DELAY);
-
-  #saveLoop = debounce((loop) => {
-    this.#storageTracker?.saveState({
-      loop,
-    });
-  }, STORAGE_DELAY);
-
-  #saveLoopMode = debounce((loopMode) => {
-    this.#storageTracker?.saveState({
-      loopMode,
-    });
-  }, STORAGE_DELAY);
-
-  #savePlaylist = debounce((currentIndex, loop) => {
-    this.#storageTracker?.saveState({
-      playlist: {
-        currentIndex,
-        loop,
-      },
-    });
-  }, STORAGE_DELAY);
 
   #normalizeSkipTime(skipTime) {
     if (!VALID_SKIP_TIMES.includes(skipTime)) {
@@ -390,23 +332,19 @@ export default class Player extends Widget {
     this.#createVideo();
   }
 
-  async #createPlaylist(playlist, defaultSource) {
+  async #createPlaylist(options, defaultSource) {
     try {
       const { default: PlayList } = await import("./playlist.js");
-      const { sources, ...playlistOptions } = playlist;
 
-      if (this.#enableStorage && this.#isStorageDefined) {
-        const state = this.#storageTracker.getState();
-        const { currentIndex, loop } = state.playlist;
-
-        playlistOptions.startIndex = currentIndex;
-        playlistOptions.loop = loop;
+      if (defaultSource) {
+        options.sources = [defaultSource, ...options.sources].filter(Boolean);
       }
+
+      this.#storageManager?.mutatePlaylistOptions(options);
 
       return new PlayList({
         player: this,
-        sources: [defaultSource, ...sources].filter(Boolean),
-        ...playlistOptions,
+        ...options,
       });
     } catch (error) {
       console.error("Error importing PlayList module:", error);
@@ -444,6 +382,7 @@ export default class Player extends Widget {
   async #createVolumeControl() {
     this.#volumeControl = await ui.createVolumeControl({
       player: this,
+      hasAudio: this.hasAudio,
     });
   }
 
@@ -456,7 +395,12 @@ export default class Player extends Widget {
     this.#video.on("waiting", this.#onWaiting.bind(this));
     this.#video.on("playing", this.#onPlaying.bind(this));
     this.#video.on("ended", this.#onEnded.bind(this));
+    // this.#video.on("audioDetected", this.#onAudioDetected.bind(this));
   }
+
+  // async #onAudioDetected(hasAudio) {
+  //   this.hasAudio = hasAudio;
+  // }
 
   #isValidSource(source) {
     return (
@@ -475,7 +419,15 @@ export default class Player extends Widget {
       });
     }
 
-    this.#savePlaylist(this.#playlist.currentIndex, this.#playlist.loop);
+    this.#storageManager?.savePlaylist(
+      this.#playlist.currentIndex,
+      this.#playlist.loop
+    );
+  }
+
+  #onPlaylistReady() {
+    this.#createVideo();
+    this.#storageManager?.savePlaylistState();
   }
 
   async #onVideoReady() {
@@ -493,22 +445,7 @@ export default class Player extends Widget {
       this.play();
     }
 
-    if (this.#enableStorage) {
-      if (this.#isStorageDefined) {
-        const times = this.#storageTracker.getState().times;
-
-        times.forEach((time, index) => {
-          this.sources[index].currentTime = time;
-        });
-
-        this.currentTime = this.source.currentTime;
-      } else {
-        const times = this.sources.map((source) => source.currentTime);
-        this.#storageTracker.patchState((state) => {
-          state.times = times;
-        });
-      }
-    }
+    this.#storageManager?.syncPlaybackTimes();
 
     this.emit("controlsReady");
   }
@@ -536,13 +473,13 @@ export default class Player extends Widget {
   #onPlay() {
     if (!this.#isControlsReady) return;
     this.controls.buttons.play.icon = SVGIcons.PAUSE;
-    this.#storageTracker?.startCurrentTimeTracker();
+    this.#storageManager?.startPlaybackTracker();
   }
 
   #onPause() {
     if (!this.#isControlsReady) return;
     this.controls.buttons.play.icon = SVGIcons.PLAY;
-    this.#storageTracker?.stopCurrentTimeTracker();
+    this.#storageManager?.stopPlaybackTracker();
   }
 
   #onWaiting() {

@@ -25,10 +25,12 @@ export default class VideoCurrentTimeTracker {
   save() {
     const currentTime = this.#playerTracker.player.currentTime;
     const orderIndex = this.currentSource.orderIndex;
-    this.#playerTracker.patchState((state) => {
-      state.times[orderIndex] = currentTime;
-      this.currentSource.currentTime = currentTime;
-    });
+    this.#playerTracker.saveState((state) => ({
+      times: state.times.map((time, index) =>
+        index === orderIndex ? currentTime : time
+      ),
+    }));
+    this.currentSource.currentTime = currentTime;
   }
 
   #updateCurrentTime = () => {
