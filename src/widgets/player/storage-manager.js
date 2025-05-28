@@ -39,7 +39,6 @@ export default class StorageManager {
       this.player.currentTime = this.player.source.currentTime;
     } else {
       const times = this.player.sources.map((source) => source.currentTime);
-      console.log(times);
       this.#tracker.saveState({
         times,
       });

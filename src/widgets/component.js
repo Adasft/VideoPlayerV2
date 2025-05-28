@@ -94,9 +94,7 @@ export class Component {
   }
 
   #attachChild(child, parentComponent) {
-    // console.log("attachChild", child, parentComponent);
     child.parent = parentComponent;
-    // console.log("attachChild", child.isConnected, parentComponent);
     child.#tiggerLifecycleState(parentComponent.node, Component.ON_APPENDED);
 
     if (parentComponent.isConnected) {
@@ -121,13 +119,11 @@ export class Component {
     if (lifecycleState === Component.ON_MOUNTED) {
       [...lifecycleStateSet].forEach((component) => {
         const element = component.element;
-        // const lifecycleMethod = component[lifecycleState];
 
-        if (!element.isChildOf(parent)) {
+        if (!element?.isChildOf(parent)) {
           return;
         }
 
-        // lifecycleMethod.call(component);
         component.onMounted?.();
         lifecycleStateSet.delete(component);
 

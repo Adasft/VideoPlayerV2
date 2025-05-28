@@ -21,14 +21,11 @@ export default class VolumeControlsComponent extends Component {
     const { controls } = this.volumeControl;
     this.addClass("show");
 
-    // this.append(controls.sliders.volume.component);
-    // this.appendWrapper(this.#createVolumeSliderWrapper());
     this.append(controls.buttons.volume.component);
     this.appendWrapper(this.#createVolumeSliderWrapper());
 
-    this.volumeControl.on("audioDetected", (hasAudio) => {
+    this.volumeControl.on("refresh", (hasAudio) => {
       if (hasAudio) {
-        // console.log("hasAudio", controls.sliders.volume.component);
         this.#ref.volumeSliderWrapper.current.add(
           controls.sliders.volume.component
         );
@@ -41,7 +38,7 @@ export default class VolumeControlsComponent extends Component {
     const { volume } = sliders;
 
     return this.wrapper("div", "player-volume-slider-wrapper")
-      .add(volume.component)
+      .add(volume?.component)
       .toRef(this.#ref.volumeSliderWrapper);
   }
 

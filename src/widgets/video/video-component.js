@@ -96,7 +96,6 @@ export default class VideoComponent extends Component {
 
   onCanPlay() {
     const { video } = this;
-    console.log("onCanPlay");
     video.emit("canPlay");
     video.emit("audioDetected", this.#hasAudio());
   }

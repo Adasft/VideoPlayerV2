@@ -395,12 +395,8 @@ export default class Player extends Widget {
     this.#video.on("waiting", this.#onWaiting.bind(this));
     this.#video.on("playing", this.#onPlaying.bind(this));
     this.#video.on("ended", this.#onEnded.bind(this));
-    // this.#video.on("audioDetected", this.#onAudioDetected.bind(this));
+    this.#video.on("audioDetected", this.#onAudioDetected.bind(this));
   }
-
-  // async #onAudioDetected(hasAudio) {
-  //   this.hasAudio = hasAudio;
-  // }
 
   #isValidSource(source) {
     return (
@@ -451,9 +447,7 @@ export default class Player extends Widget {
   }
 
   #onLoadedMetaData() {
-    if (this.#videoStatusBar) {
-      this.#videoStatusBar.refresh();
-    }
+    this.#videoStatusBar?.refresh();
 
     this.emit("videoReady");
   }
@@ -513,5 +507,9 @@ export default class Player extends Widget {
     if (this.playlist.isEndOfList && !this.playlist.loop) {
       this.controls.buttons.next.enabled = false;
     }
+  }
+
+  #onAudioDetected(hasAudio) {
+    this.#volumeControl?.refresh(hasAudio);
   }
 }

@@ -124,6 +124,8 @@ const playerComponent = new PlayerComponent(player);
 
 playerComponent.mount(document.body);
 
+window.player = player;
+
 // const stepSlider = new StepsSlider({
 //   value: 0,
 //   // pasos para elegir la velocidad de video

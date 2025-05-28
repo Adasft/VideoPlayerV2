@@ -32,7 +32,7 @@ export default class StepSlider extends Slider {
   constructor({ value, steps, showSteps = false, showLabels = false }) {
     const min = steps.at(0);
     const max = steps.at(-1);
-    console.log({ value, min, max });
+
     super({
       value: value ?? min,
       min,

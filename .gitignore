@@ -1,0 +1,177 @@
+# === SISTEMAS OPERATIVOS ===
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# === EDITORES DE TEXTO Y ENTORNOS ===
+
+# VSCode
+.vscode/
+
+# JetBrains IDEs (IntelliJ, PhpStorm, etc.)
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# === NODE / JAVASCRIPT ===
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+.cache/
+.next/
+out/
+coverage/
+
+# === PYTHON ===
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pkl
+*.egg-info/
+.eggs/
+*.egg
+.env
+.venv
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === JAVA ===
+
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.jks
+target/
+build/
+
+# === PHP ===
+
+vendor/
+composer.lock
+
+# === RUBY ===
+
+*.gem
+*.rbc
+.bundle/
+log/
+tmp/
+vendor/bundle
+*.log
+
+# === DOTNET ===
+
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.mdb
+
+# === GENERAL ===
+
+*.log
+*.tmp
+*.bak
+*.old
+*.orig
+*.sw?
+
+# === ARCHIVOS DE COMPILACIÓN / DEPLOY ===
+
+*.out
+*.o
+*.so
+*.exe
+*.class
+*.dll
+
+# === ARCHIVOS DE CONFIGURACIÓN PRIVADA ===
+
+.env
+.env.local
+.env.*.local
+*.secret.*
+*.key
+*.pem
+*.crt
+
+# === COMPRESIÓN Y BACKUPS ===
+
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.gz
+*.bak
+*.tmp
+*.backup
+
+# === TEST COVERAGE ===
+
+coverage/
+.nyc_output/
+lcov-report/
+*.lcov
+
+# === DOCKER ===
+
+*.pid
+docker-compose.override.yml
+
+# === MISC ===
+
+*.sublime-*
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.pid
+*.seed
+*.dump
