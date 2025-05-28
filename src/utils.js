@@ -80,3 +80,41 @@ export function throttle(func, delay) {
     func(...args);
   };
 }
+
+export function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function getCurrentBrowser() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  if (userAgent.includes("firefox")) {
+    return "firefox";
+  } else if (userAgent.includes("safari") && !userAgent.includes("chrome")) {
+    return "safari";
+  } else if (userAgent.includes("chrome")) {
+    return "chrome";
+  } else if (userAgent.includes("edge")) {
+    return "edge";
+  } else if (userAgent.includes("msie") || userAgent.includes("trident")) {
+    return "ie";
+  }
+  return "unknown";
+}
+
+export const Browser = Object.freeze({
+  FIREFOX: "firefox",
+  SAFARI: "safari",
+  CHROME: "chrome",
+  EDGE: "edge",
+  IE: "ie",
+  UNKNOWN: "unknown",
+
+  get current() {
+    return getCurrentBrowser();
+  },
+});

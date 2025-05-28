@@ -99,7 +99,7 @@ const player = new Player({
   enableStorage: true,
   overwriteStorage: false,
   autoplay: false,
-  skipTime: 15,
+  skipTime: 5,
   playlist: {
     loop: false,
     startIndex: 0,
