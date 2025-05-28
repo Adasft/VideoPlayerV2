@@ -1,4 +1,4 @@
-import { formatTime } from "../../utils.js";
+import { Browser, formatTime } from "../../utils.js";
 import { Widget } from "../widget.js";
 import SVGIcons from "../../ui/icons.js";
 
@@ -65,6 +65,7 @@ export default class VideoStatusBar extends Widget {
   }
 
   setChapterTitle(title) {
+    console.log("setChapterTitle", this.controls);
     this.controls.textViews.chapterTitle.text = title;
   }
 
@@ -164,7 +165,12 @@ export default class VideoStatusBar extends Widget {
 
     buttons.repeat.on("click", () => this.#toggleRepeatMode());
     buttons.shuffle.on("click", () => this.#toggleActiveRandomPlayback());
-    buttons.pictureInPicture.on("click", () => this.#togglePipMode());
+
+    if (Browser.current === Browser.FIREFOX) {
+      buttons.pictureInPicture.enabled = false;
+    } else {
+      buttons.pictureInPicture.on("click", () => this.#togglePipMode());
+    }
 
     // speed.on("click", () => {
     //   this.player.video.playbackRate =

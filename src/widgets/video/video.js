@@ -1,3 +1,4 @@
+import { Browser } from "../../utils.js";
 import { Widget } from "../widget.js";
 
 export default class Video extends Widget {
@@ -176,10 +177,16 @@ export default class Video extends Widget {
   }
 
   requestPictureInPicture() {
+    if (Browser.current === Browser.FIREFOX) {
+      return;
+    }
     this.component?.requestPictureInPicture();
   }
 
   exitPictureInPicture() {
+    if (Browser.current === Browser.FIREFOX) {
+      return;
+    }
     this.component?.exitPictureInPicture();
   }
 
