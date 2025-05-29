@@ -65,7 +65,6 @@ export default class VideoStatusBar extends Widget {
   }
 
   setChapterTitle(title) {
-    console.log("setChapterTitle", this.controls);
     this.controls.textViews.chapterTitle.text = title;
   }
 

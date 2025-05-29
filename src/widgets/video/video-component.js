@@ -134,6 +134,8 @@ export default class VideoComponent extends Component {
     video.on("mutedChange", this.onMutedChange.bind(this));
     video.on("loopChange", this.onLoopChange.bind(this));
 
+    this.#initializeVideoData();
+
     // Eventos del DOM
     this.on("click", this.onClick.bind(this));
     this.#bindEvent("waiting", this.onWaiting.bind(this));
@@ -146,8 +148,6 @@ export default class VideoComponent extends Component {
     this.#bindEvent("progress", this.onProgress.bind(this));
     this.#bindEvent("error", this.onError.bind(this));
     this.#bindEvent("ended", this.onEnded.bind(this));
-
-    this.#initializeVideoData();
   }
 
   #initializeVideoData() {
@@ -164,6 +164,8 @@ export default class VideoComponent extends Component {
       muted: video.muted,
       volume: video.volume,
     });
+
+    this.pause();
   }
 
   #calculateBufferedEndProgress() {

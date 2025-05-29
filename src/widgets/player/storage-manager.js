@@ -45,6 +45,15 @@ export default class StorageManager {
     }
   }
 
+  setTimeAt(index, time) {
+    const times = this.#tracker.getState().times || [];
+    times[index] = time;
+
+    this.#tracker.saveState({
+      times,
+    });
+  }
+
   savePlaylistState() {
     this.#tracker.saveState({
       playlist: {
@@ -59,9 +68,18 @@ export default class StorageManager {
       return;
     }
 
-    const { currentIndex, loop } = this.#tracker.getState().playlist;
+    const {
+      playlist: { currentIndex, loop },
+      times,
+    } = this.#tracker.getState();
+
     options.startIndex = currentIndex;
     options.loop = loop;
+
+    // In Safari, setting currentTime equal to the duration can trigger 'ended' immediately.
+    // Apparently, loading a video is equivalent to ending it.
+    // Safari knows more than you do, so don't question it.
+    options.sources[currentIndex].currentTime = times[currentIndex] || 0;
   }
 
   startPlaybackTracker() {

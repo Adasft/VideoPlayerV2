@@ -3,7 +3,7 @@ import * as ui from "../../ui/ui-utils.js";
 import SVGIcons from "../../ui/icons.js";
 import PlayerControls from "./player-controls.js";
 import StorageManager from "./storage-manager.js";
-import { formatTime, getRandomId } from "../../utils.js";
+import { Browser, formatTime, getRandomId } from "../../utils.js";
 
 const VALID_SKIP_TIMES = [5, 10, 15, 20];
 const DEFAULT_SKIP_TIME = 5;
@@ -165,8 +165,6 @@ export default class Player extends Widget {
   get muted() {
     return this.#muted;
   }
-
-  // set
 
   get hasAudio() {
     return this.video.hasAudio;
@@ -501,6 +499,9 @@ export default class Player extends Widget {
       this.controls.buttons.reload.show();
       return;
     }
+
+    this.#storageManager.setTimeAt(this.playlist.currentIndex, 0);
+    currentSource.currentTime = 0;
 
     this.playlist.next();
 
