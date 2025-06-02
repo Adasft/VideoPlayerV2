@@ -41,7 +41,6 @@ export default class VideoStatusBar extends Widget {
     await this.controls.createOrDestroyChaptersControls();
     await this.controls.createOrDestroyChapterTitle();
 
-    console.log(source);
     sliders.seeker.refresh({
       value: currentTime,
       min: 0,
@@ -54,7 +53,6 @@ export default class VideoStatusBar extends Widget {
     this.setDurationText(duration);
 
     if (this.player.hasChapters()) {
-      console.log("Si tiene");
       const chapterTitleText = this.player.getCurrentChapterTitle();
       this.setChapterTitle(chapterTitleText);
     }

@@ -1,6 +1,5 @@
 import EventEmitter from "./event-emitter.js";
 import { DomElement, DomText } from "./element.js";
-import { Browser } from "../utils.js";
 
 export class Dom {
   static #eventEmitter = EventEmitter.getInstance();

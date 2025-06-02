@@ -43,7 +43,6 @@ export default class VideoComponent extends Component {
   }
 
   onRefresh() {
-    console.log("VideoComponent: onRefresh", this.video.muted);
     this.#initializeVideoData(this.video.muted);
   }
 
@@ -162,14 +161,10 @@ export default class VideoComponent extends Component {
       src: video.src,
       currentTime: video.currentTime,
       playbackRate: video.playbackRate,
-      muted: muted, // Mute if autoplay is true
+      muted: muted,
       volume: video.volume,
       autoplay: video.autoplay,
     });
-
-    console.log("hola");
-
-    // this.pause();
   }
 
   #calculateBufferedEndProgress() {

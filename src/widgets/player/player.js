@@ -3,37 +3,189 @@ import * as ui from "../../ui/ui-utils.js";
 import SVGIcons from "../../ui/icons.js";
 import PlayerControls from "./player-controls.js";
 import StorageManager from "./storage-manager.js";
-import { Browser, formatTime, getRandomId } from "../../utils.js";
+import { formatTime, getRandomId } from "../../utils.js";
 
 const VALID_SKIP_TIMES = [5, 10, 15, 20];
 const DEFAULT_SKIP_TIME = 5;
 
 export default class Player extends Widget {
+  /**
+   * The current media source object being played
+   * @type {Object|null}
+   * @private
+   */
   #currentSource;
+
+  /**
+   * Player width in pixels
+   * @type {number}
+   * @private
+   */
   #width;
+
+  /**
+   * Player height in pixels
+   * @type {number}
+   * @private
+   */
   #height;
+
+  // Playback Configuration Properties
+
+  /**
+   * Whether the player should start playing automatically. If this is true,
+   * the property `muted` will be set to true by default.
+   * @type {boolean}
+   * @private
+   */
   #autoplay;
+
+  /**
+   * Audio volume level (0.0 to 1.0)
+   * @type {number}
+   * @private
+   */
   #volume;
+
+  /**
+   * Whether the audio is muted
+   * @type {boolean}
+   * @private
+   */
   #muted;
+
+  /**
+   * Whether the current media should loop when it ends
+   * @type {boolean}
+   * @private
+   */
   #loop;
+
+  /**
+   * Time in seconds to skip forward/backward
+   * @type {number}
+   * @private
+   */
   #skipTime;
-  #playlist;
-  #isRandomPlaybackActive = false;
-  #isControlsReady = false;
-  #enableStorage;
-  #overwriteStorage;
+
+  /**
+   * Playback speed multiplier
+   * @type {number}
+   * @private
+   */
   #playbackRate;
+
+  /**
+   * Loop mode for playlist behavior ('none', 'infinite', 'once')
+   * @type {"none" | "infinite" | "once"}
+   * @private
+   */
   #loopMode;
 
+  // Playlist and Player State
+
+  /**
+   * Playlist object containing multiple media sources
+   * @type {Object|null}
+   * @private
+   */
+  #playlist;
+
+  /**
+   * Whether the player is currently using a playlist
+   * @type {boolean}
+   * @private
+   */
+  #hasPlaylist;
+
+  /**
+   * Whether random/shuffle playback is currently active
+   * @type {boolean}
+   * @private
+   */
+  #isRandomPlaybackActive = false;
+
+  /**
+   * Whether player controls have been initialized and are ready for use
+   * @type {boolean}
+   * @private
+   */
+  #isControlsReady = false;
+
+  // Storage Configuration
+
+  /**
+   * Whether local storage functionality is enabled for persisting player state
+   * @type {boolean}
+   * @private
+   */
+  #enableStorage;
+
+  /**
+   * Whether to overwrite existing storage data on initialization
+   * @type {boolean}
+   * @private
+   */
+  #overwriteStorage;
+
+  /**
+   * Storage tracking object for monitoring playback progress and state
+   * @type {Object|null}
+   * @private
+   */
   #storageTracker;
 
+  // UI Components
+
+  /**
+   * Main video element for media playback
+   * @type {Object|null}
+   * @private
+   */
   #video;
+
+  /**
+   * Video status bar component showing playback information
+   * @type {Object|null}
+   * @private
+   */
   #videoStatusBar;
+
+  /**
+   * Playback control buttons component (play, pause, stop, etc.)
+   * @type {Object|null}
+   * @private
+   */
   #playbackControls;
+
+  /**
+   * Loading spinner/indicator component
+   * @type {Object|null}
+   * @private
+   */
   #loader;
+
+  /**
+   * Volume control slider and mute button component
+   * @type {Object|null}
+   * @private
+   */
   #volumeControl;
+
+  /**
+   * Main player controls container managing all control components
+   * @type {PlayerControls|null}
+   * @private
+   */
   #controls;
 
+  // Storage Management
+
+  /**
+   * Storage manager instance for handling data persistence and retrieval
+   * @type {StorageManager|null}
+   * @private
+   */
   #storageManager;
 
   constructor({
@@ -64,40 +216,15 @@ export default class Player extends Widget {
     this.#enableStorage = enableStorage;
     this.#overwriteStorage = overwriteStorage;
     this.#playbackRate = playbackRate;
+    this.#hasPlaylist = Boolean(playlist);
 
-    if (this.#enableStorage) {
-      this.#storageManager = new StorageManager({
-        player: this,
-        overwriteStorage: this.#overwriteStorage,
-        syncPlayerState: (state) => {
-          this.#muted = state.muted;
-          this.#volume = state.volume;
-          this.#playbackRate = state.playbackRate;
-          this.#loop = state.loop;
-          this.#loopMode = state.loopMode;
-          this.#autoplay = state.autoplay;
-        },
-      });
-    }
-
-    this.#createLoader();
-
-    if (playlist) {
-      this.once("playlistReady", this.#onPlaylistReady.bind(this));
-    }
-
-    this.on("sourceChange", this.#onSourceChange.bind(this));
-    this.once("videoReady", this.#onVideoReady.bind(this));
-    this.once("controlsReady", () => {
-      if (this.#autoplay) {
-        // this.muted = true; // Mute by default for autoplay
-        this.play();
-      }
-    });
-
+    this.#initializeStorage();
     this.#initializeMedia(source, playlist);
+    this.#createLoader();
+    this.#setupEvents();
   }
 
+  // Getters públicos
   get controls() {
     return this.#controls;
   }
@@ -132,6 +259,15 @@ export default class Player extends Widget {
     return this.#volumeControl;
   }
 
+  get playlist() {
+    return this.#playlist;
+  }
+
+  get storage() {
+    return this.#storageTracker;
+  }
+
+  // Propiedades de configuración
   get width() {
     return this.#width;
   }
@@ -140,115 +276,109 @@ export default class Player extends Widget {
     return this.#height;
   }
 
-  get duration() {
-    return this.video.duration;
-  }
-
-  set currentTime(time) {
-    this.video.currentTime = time;
-  }
-
-  get currentTime() {
-    return this.video.currentTime;
-  }
-
-  set volume(volume) {
-    this.#volume = volume;
-    this.video.volume = volume;
-    this.#storageManager?.saveVolume(volume);
-  }
-
-  get volume() {
-    return this.#volume;
-  }
-
-  set muted(isMuted) {
-    console.log("Setting muted to:", isMuted);
-    this.#muted = isMuted;
-    this.video.muted = isMuted;
-    this.#storageManager?.saveMuted(isMuted);
-  }
-
-  get muted() {
-    return this.#muted;
-  }
-
-  get hasAudio() {
-    return this.video.hasAudio;
-  }
-
-  set isRandomPlaybackActive(isRandomPlaybackActive) {
-    this.#isRandomPlaybackActive = isRandomPlaybackActive;
-  }
-
-  get isRandomPlaybackActive() {
-    return this.#isRandomPlaybackActive;
-  }
-
-  get isPiPActive() {
-    return document.pictureInPictureElement !== null;
-  }
-
   get skipTime() {
     return this.#skipTime;
-  }
-
-  set loop(isLoop) {
-    this.#loop = isLoop;
-    this.video.loop = isLoop;
-    this.#storageManager?.saveLoop(isLoop);
-  }
-
-  get loop() {
-    return this.#loop;
-  }
-
-  set loopMode(loopMode) {
-    this.#loopMode = loopMode;
-    this.video.loopMode = loopMode;
-    this.#storageManager?.saveLoopMode(loopMode);
-  }
-
-  get loopMode() {
-    return this.#loopMode;
-  }
-
-  set autoplay(isAutoplay) {
-    this.#autoplay = isAutoplay;
   }
 
   get autoplay() {
     return this.#autoplay;
   }
 
-  get isPlaying() {
-    return this.#video.isPlaying;
+  get loop() {
+    return this.#loop;
   }
 
-  get playlist() {
-    return this.#playlist;
-  }
-
-  set playbackRate(playbackRate) {
-    this.#playbackRate = playbackRate;
-    this.#video.playbackRate = playbackRate;
-    this.#storageManager?.savePlaybackRate(playbackRate);
+  get loopMode() {
+    return this.#loopMode;
   }
 
   get playbackRate() {
     return this.#playbackRate;
   }
 
-  get storage() {
-    return this.#storageTracker;
+  get volume() {
+    return this.#volume;
+  }
+
+  get muted() {
+    return this.#muted;
+  }
+
+  // Propiedades del video
+  get duration() {
+    return this.video?.duration || 0;
+  }
+
+  get currentTime() {
+    return this.video?.currentTime || 0;
+  }
+
+  get hasAudio() {
+    return this.video?.hasAudio || false;
+  }
+
+  get isPlaying() {
+    return this.#video?.isPlaying || false;
+  }
+
+  get isPiPActive() {
+    return document.pictureInPictureElement !== null;
+  }
+
+  // Estado del reproductor
+  get isRandomPlaybackActive() {
+    return this.#isRandomPlaybackActive;
+  }
+
+  // Setters con validación y persistencia
+  set currentTime(time) {
+    if (this.video) this.video.currentTime = time;
+  }
+
+  set volume(volume) {
+    this.#volume = Math.max(0, Math.min(1, volume));
+    if (this.video) this.video.volume = this.#volume;
+    this.#storageManager?.saveVolume(this.#volume);
+  }
+
+  set muted(isMuted) {
+    this.#muted = Boolean(isMuted);
+    if (this.video) this.video.muted = this.#muted;
+    this.#storageManager?.saveMuted(this.#muted);
+  }
+
+  set loop(isLoop) {
+    this.#loop = Boolean(isLoop);
+    if (this.video) this.video.loop = this.#loop;
+    this.#storageManager?.saveLoop(this.#loop);
+  }
+
+  set loopMode(loopMode) {
+    this.#loopMode = loopMode;
+    if (this.video) this.video.loopMode = loopMode;
+    this.#storageManager?.saveLoopMode(loopMode);
+  }
+
+  set autoplay(isAutoplay) {
+    this.#autoplay = Boolean(isAutoplay);
+  }
+
+  set playbackRate(rate) {
+    this.#playbackRate = Math.max(0.25, Math.min(4, rate));
+    if (this.#video) this.#video.playbackRate = this.#playbackRate;
+    this.#storageManager?.savePlaybackRate(this.#playbackRate);
+  }
+
+  set isRandomPlaybackActive(isActive) {
+    this.#isRandomPlaybackActive = Boolean(isActive);
   }
 
   hasPlaylist() {
-    return !!this.#playlist;
+    return this.#hasPlaylist;
   }
 
   hasChapters() {
-    return this.source.chapters?.length > 0;
+    return Boolean(this.source?.chapters?.length);
   }
 
   activatePip() {
@@ -296,6 +426,35 @@ export default class Player extends Widget {
     this.#loader = await ui.createLoader();
   }
 
+  #initializeStorage() {
+    if (!this.#enableStorage) {
+      return;
+    }
+
+    this.#storageManager = new StorageManager({
+      player: this,
+      overwriteStorage: this.#overwriteStorage,
+      syncPlayerState: (state) => {
+        this.#muted = state.muted;
+        this.#volume = state.volume;
+        this.#playbackRate = state.playbackRate;
+        this.#loop = state.loop;
+        this.#loopMode = state.loopMode;
+        this.#autoplay = state.autoplay;
+      },
+    });
+  }
+
+  #setupEvents() {
+    if (this.hasPlaylist()) {
+      this.once("playlistReady", this.#onPlaylistReady.bind(this));
+    }
+
+    this.on("sourceChange", this.#onSourceChange.bind(this));
+    this.once("videoReady", this.#onVideoReady.bind(this));
+    this.once("controlsReady", this.#onControlsReady.bind(this));
+  }
+
   #initializeMedia(source, playlist) {
     if ((source && playlist) || playlist) {
       this.#initializePlaylist(playlist, source);
@@ -331,8 +490,10 @@ export default class Player extends Widget {
       throw new Error("Invalid source: Expected an object.");
     }
 
-    source.id = getRandomId();
-    this.#currentSource = source;
+    this.#currentSource = {
+      ...source,
+      id: getRandomId(),
+    };
     this.#playlist = null;
     this.#createVideo();
   }
@@ -341,15 +502,19 @@ export default class Player extends Widget {
     try {
       const { default: PlayList } = await import("./playlist.js");
 
-      if (defaultSource) {
-        options.sources = [defaultSource, ...options.sources].filter(Boolean);
-      }
-
-      this.#storageManager?.mutatePlaylistOptions(options);
+      const playlistOptions = {
+        ...options,
+        sources: defaultSource
+          ? [defaultSource, ...options.sources].filter(Boolean)
+          : options.sources,
+      };
+      const finalPlaylistOptions =
+        this.#storageManager?.adjustPlaylistOptions(playlistOptions) ??
+        playlistOptions;
 
       return new PlayList({
         player: this,
-        ...options,
+        ...finalPlaylistOptions,
       });
     } catch (error) {
       console.error("Error importing PlayList module:", error);
@@ -447,14 +612,17 @@ export default class Player extends Widget {
     await this.#createPlaybackControls();
     await this.#createVolumeControl();
 
-    // if (this.#autoplay) {
-    //   this.muted = true; // Mute by default for autoplay
-    //   this.play();
-    // }
-
     this.#storageManager?.syncPlaybackTimes();
 
     this.emit("controlsReady");
+  }
+
+  #onControlsReady() {
+    if (!this.#autoplay) {
+      return;
+    }
+
+    this.play();
   }
 
   #onLoadedMetaData() {

@@ -43,15 +43,8 @@ export default class VolumeControl extends Widget {
     if (!hasAudio) {
       this.controls.buttons.volume.icon = SVGIcons.VOLUME_MUTED;
     } else if (this.player.autoplay && this.player.muted) {
-      // console.log(
-      //   "Player is autoplaying and muted, ignoring volume change.",
-      //   volume
-      // );
-      // this.#lastVolume = volume;
-      // this.player.volume = volume;
       this.#player.controls.buttons.volume.icon = this.#volumeLevels.OFF;
       this.controls.sliders.volume.slideToStart();
-      // return;
     }
 
     this.#setVolumeSliderEvents();
@@ -61,19 +54,6 @@ export default class VolumeControl extends Widget {
 
   onVolumeChange(volume) {
     const { buttons } = this.controls;
-    // console.log("Volume changed to:", volume);
-
-    // if (this.player.autoplay && this.player.muted) {
-    //   console.log(
-    //     "Player is autoplaying and muted, ignoring volume change.",
-    //     volume
-    //   );
-    //   this.#lastVolume = volume;
-    //   this.player.volume = volume;
-    //   buttons.volume.icon = this.#volumeLevels.OFF;
-    //   this.controls.sliders.volume.slideToStart();
-    //   return;
-    // }
 
     if (this.player.muted) this.player.muted = false;
 
@@ -90,8 +70,8 @@ export default class VolumeControl extends Widget {
     const isMuted = !this.player.muted;
     const volume = isMuted ? 0 : this.#lastVolume;
 
-    // console.log("Muted changed to:", isMuted, "Volume:", volume);
     sliders.volume.setValue(volume);
+
     this.player.muted = isMuted;
 
     buttons.volume.icon = this.#getVolumeIcon(volume);

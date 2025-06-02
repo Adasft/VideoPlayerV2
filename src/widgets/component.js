@@ -203,14 +203,13 @@ export class Component {
     const parentElement = parent.element;
     const parentComponent =
       parent instanceof Component ? parent : parent.getParentComponent();
-    // parentElement.append([this.element]);
-    // console.log("insertTo", parentElement, this.element, insertMethod);
-    // insertMethod(parentElement, this.element);
+
     if (insertMethod === "append") {
       parentElement.append([this.element]);
     } else if (insertMethod === "prepend") {
       parentElement.prepend([this.element]);
     }
+
     this.#attachChild(this, parentComponent);
   }
 

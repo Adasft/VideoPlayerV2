@@ -82,7 +82,7 @@ const player = new Player({
   source: {
     src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     title: "Este es un video con un titulo",
-    currentTime: 0,
+    currentTime: 596.474195,
     chapters: [
       { start: 0, end: 200, title: "Chapter 1" },
       { start: 200, end: 270, title: "Chapter 2" },
@@ -96,9 +96,9 @@ const player = new Player({
   width: 1200,
   height: 700,
   muted: false,
-  enableStorage: false,
-  overwriteStorage: true,
-  autoplay: true,
+  enableStorage: true,
+  overwriteStorage: false,
+  autoplay: false,
   skipTime: 5,
   playlist: {
     loop: false,
