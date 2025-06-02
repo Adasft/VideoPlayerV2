@@ -1,5 +1,6 @@
 import EventEmitter from "./event-emitter.js";
 import { DomElement, DomText } from "./element.js";
+import { Browser } from "../utils.js";
 
 export class Dom {
   static #eventEmitter = EventEmitter.getInstance();
@@ -45,10 +46,14 @@ export class Dom {
 
   static disableSelection() {
     document.documentElement.style.userSelect = "none";
+    document.documentElement.style.webkitUserSelect = "none"; // Safari
+    document.documentElement.style.MozUserSelect = "none"; // Firefox
   }
 
   static enableSelection() {
     document.documentElement.style.userSelect = "";
+    document.documentElement.style.webkitUserSelect = ""; // Safari
+    document.documentElement.style.MozUserSelect = ""; // Firefox
   }
 
   static setCursorPointer() {

@@ -33,6 +33,8 @@ export default class Video extends Widget {
 
   #height;
 
+  #autoplay;
+
   constructor({
     src,
     width,
@@ -42,6 +44,7 @@ export default class Video extends Widget {
     isMuted = false,
     playbackRate = 1,
     loopMode = "none",
+    autoplay = false,
   }) {
     super();
     if (!src) throw new Error("VideoWidget: src must be provided");
@@ -53,6 +56,7 @@ export default class Video extends Widget {
     this.#currentTime = currentTime;
     this.#playbackRate = playbackRate;
     this.#loopMode = loopMode;
+    this.#autoplay = autoplay;
 
     this.on("play", () => {
       this.#isPlaying = true;
@@ -153,6 +157,10 @@ export default class Video extends Widget {
 
   get height() {
     return this.#height;
+  }
+
+  get autoplay() {
+    return this.#autoplay;
   }
 
   onRefresh({ src, currentTime }) {

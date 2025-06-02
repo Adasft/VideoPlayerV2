@@ -57,7 +57,7 @@ export default class Player extends Widget {
     this.#height = height;
     this.#autoplay = autoplay;
     this.#volume = volume;
-    this.#muted = muted;
+    this.#muted = autoplay || muted;
     this.#loop = loop;
     this.#loopMode = loopMode;
     this.#skipTime = this.#normalizeSkipTime(skipTime);
@@ -88,6 +88,12 @@ export default class Player extends Widget {
 
     this.on("sourceChange", this.#onSourceChange.bind(this));
     this.once("videoReady", this.#onVideoReady.bind(this));
+    this.once("controlsReady", () => {
+      if (this.#autoplay) {
+        // this.muted = true; // Mute by default for autoplay
+        this.play();
+      }
+    });
 
     this.#initializeMedia(source, playlist);
   }
@@ -157,6 +163,7 @@ export default class Player extends Widget {
   }
 
   set muted(isMuted) {
+    console.log("Setting muted to:", isMuted);
     this.#muted = isMuted;
     this.video.muted = isMuted;
     this.#storageManager?.saveMuted(isMuted);
@@ -360,6 +367,7 @@ export default class Player extends Widget {
       isMuted: this.#muted,
       playbackRate: this.#playbackRate,
       loopMode: this.#loopMode,
+      autoplay: this.#autoplay,
     });
 
     this.#setVideoEvents();
@@ -394,6 +402,11 @@ export default class Player extends Widget {
     this.#video.on("playing", this.#onPlaying.bind(this));
     this.#video.on("ended", this.#onEnded.bind(this));
     this.#video.on("audioDetected", this.#onAudioDetected.bind(this));
+    this.#video.on("canPlay", () => {
+      if (this.#autoplay && !this.#isControlsReady) {
+        this.pause();
+      }
+    });
   }
 
   #isValidSource(source) {
@@ -406,11 +419,10 @@ export default class Player extends Widget {
     this.video.refresh({ src: source.src, currentTime: source.currentTime });
 
     if (this.#autoplay) {
-      this.play();
+      if (!this.isPlaying) this.play();
     } else {
-      this.play().then(() => {
-        this.pause();
-      });
+      this.pause();
+      this.controls.buttons.play.icon = SVGIcons.PLAY;
     }
 
     this.#storageManager?.savePlaylist(
@@ -435,9 +447,10 @@ export default class Player extends Widget {
     await this.#createPlaybackControls();
     await this.#createVolumeControl();
 
-    if (this.#autoplay) {
-      this.play();
-    }
+    // if (this.#autoplay) {
+    //   this.muted = true; // Mute by default for autoplay
+    //   this.play();
+    // }
 
     this.#storageManager?.syncPlaybackTimes();
 

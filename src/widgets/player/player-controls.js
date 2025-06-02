@@ -56,7 +56,10 @@ export default class PlayerControls {
 
   createOrDestroyVolumeSlider() {
     return this.#conditionalControls.createOrDestroyVolumeSlider({
-      volume: { volume: this.player.volume },
+      volume: {
+        volume: this.player.volume,
+        // this.player.autoplay && this.player.muted ? 0 : this.player.volume,
+      },
     });
   }
 

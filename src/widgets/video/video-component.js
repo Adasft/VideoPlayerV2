@@ -43,7 +43,8 @@ export default class VideoComponent extends Component {
   }
 
   onRefresh() {
-    this.#initializeVideoData();
+    console.log("VideoComponent: onRefresh", this.video.muted);
+    this.#initializeVideoData(this.video.muted);
   }
 
   onVolumeChange(volume) {
@@ -134,7 +135,7 @@ export default class VideoComponent extends Component {
     video.on("mutedChange", this.onMutedChange.bind(this));
     video.on("loopChange", this.onLoopChange.bind(this));
 
-    this.#initializeVideoData();
+    this.#initializeVideoData(video.autoplay ? true : video.muted);
 
     // Eventos del DOM
     this.on("click", this.onClick.bind(this));
@@ -150,7 +151,7 @@ export default class VideoComponent extends Component {
     this.#bindEvent("ended", this.onEnded.bind(this));
   }
 
-  #initializeVideoData() {
+  #initializeVideoData(muted) {
     const { video } = this;
 
     Object.assign(this.node, {
@@ -161,11 +162,14 @@ export default class VideoComponent extends Component {
       src: video.src,
       currentTime: video.currentTime,
       playbackRate: video.playbackRate,
-      muted: video.muted,
+      muted: muted, // Mute if autoplay is true
       volume: video.volume,
+      autoplay: video.autoplay,
     });
 
-    this.pause();
+    console.log("hola");
+
+    // this.pause();
   }
 
   #calculateBufferedEndProgress() {

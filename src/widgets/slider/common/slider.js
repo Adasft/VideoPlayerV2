@@ -182,6 +182,18 @@ export default class Slider extends Widget {
     return this.#value;
   }
 
+  slideToStart() {
+    const isSameValue = this.#applyValue(0);
+
+    if ((isSameValue && this.#isInitializedValue) || this.isUpdateNotAllowed)
+      return;
+
+    this.#isAutoSliding = !this.isDragging && !this.isMousePressed;
+
+    this.#updateState();
+    this.#updateProgress();
+  }
+
   resetValue() {
     this.setValue(0);
   }
