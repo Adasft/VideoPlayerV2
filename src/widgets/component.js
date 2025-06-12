@@ -49,8 +49,9 @@ function triggerStates(eventName, componentsSet, parentElement) {
         invokeMethod(component);
         continue;
       }
+    } else {
+      invokeMethod(component);
     }
-    invokeMethod(component);
   }
 }
 
