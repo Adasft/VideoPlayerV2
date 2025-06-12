@@ -5,7 +5,6 @@ import { SliderProgressBarComponent } from "../common/progress-bar-component.js"
 export class SliderTrackComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.setOnAppend();
     this.#init();
   }
 
@@ -27,6 +26,11 @@ export class SliderTrackComponent extends Component {
     });
   }
 
+  onMounted() {
+    this.on("mouseenter", this.onMouseEnter.bind(this));
+    this.on("mouseleave", this.onMouseLeave.bind(this));
+  }
+
   onAppended() {
     this.#setHoverPadding();
   }
@@ -39,9 +43,6 @@ export class SliderTrackComponent extends Component {
     this.css({
       width: `${track.ratioWidth * 100}%`,
     });
-
-    this.on("mouseenter", this.onMouseEnter.bind(this));
-    this.on("mouseleave", this.onMouseLeave.bind(this));
   }
 
   #createProgressBarsWrapper() {

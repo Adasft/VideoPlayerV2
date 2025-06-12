@@ -106,6 +106,10 @@ export function getCurrentBrowser() {
   return "unknown";
 }
 
+export function lookupMapValue(map, key, defaultValue = null) {
+  return map.get(key) ?? map.set(key, defaultValue).get(key);
+}
+
 export const Browser = Object.freeze({
   FIREFOX: "firefox",
   SAFARI: "safari",

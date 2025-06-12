@@ -3,6 +3,7 @@ import { DomElement, DomText } from "./element.js";
 
 export class Dom {
   static #eventEmitter = EventEmitter.getInstance();
+
   static get eventEmitter() {
     return this.#eventEmitter;
   }

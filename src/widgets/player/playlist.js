@@ -72,6 +72,19 @@ export default class PlayList {
     return this.#currentIndex;
   }
 
+  get data() {
+    return {
+      sources: this.#sources,
+      currentIndex: this.#currentIndex,
+      size: this.size,
+      currentSource: this.currentSource,
+      isEnd: this.isEndOfList,
+      isStart: this.isStartOfList,
+      loop: this.loop,
+      isShuffleActive: this.#player.isRandomPlaybackActive,
+    };
+  }
+
   prepend(source) {
     this.#sources = this.#mapSourceByIndex([source, ...this.#sources]);
     this.#player.emit("insertSource", source);

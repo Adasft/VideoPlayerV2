@@ -32,7 +32,6 @@ export default class SliderComponent extends Component {
       1000
     );
 
-    this.setOnMount();
     this.#init();
   }
 
@@ -147,6 +146,7 @@ export default class SliderComponent extends Component {
   }
 
   onMounted() {
+    this.#bindMouseEvents();
     this.slider.initializeValue();
   }
 
@@ -154,7 +154,7 @@ export default class SliderComponent extends Component {
     const { slider } = this;
 
     this.#setupSliderComponents();
-    this.#bindMouseEvents();
+    // this.#bindMouseEvents();
 
     slider.on("refresh", () => {
       this.onRefresh();

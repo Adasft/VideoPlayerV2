@@ -175,3 +175,6 @@ docker-compose.override.yml
 *.pid
 *.seed
 *.dump
+
+ideas.js
+test.html

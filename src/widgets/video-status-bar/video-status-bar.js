@@ -1,6 +1,8 @@
 import { Browser, formatTime } from "../../utils.js";
 import { Widget } from "../widget.js";
 import SVGIcons from "../../ui/icons.js";
+import PopoverComponent from "../popover/popover-component.js";
+import Popover from "../popover/popover.js";
 
 export default class VideoStatusBar extends Widget {
   #player;
@@ -19,6 +21,20 @@ export default class VideoStatusBar extends Widget {
     this.#player.video.on("pictureInPictureExit", () => {
       this.#togglePiPButtonActive(false);
     });
+
+    this.#player.actions.showPlaylist.registerDefaultAction(() =>
+      this.#showPlaylist()
+    );
+
+    this.popover = new Popover({
+      player: this.player,
+      target: this.controls.buttons.playlist,
+      placement: "top",
+      preventOverflow: false,
+      delay: 0,
+      offset: 20,
+    });
+    const popoverComponent = new PopoverComponent(this.popover);
   }
 
   get player() {
@@ -142,6 +158,18 @@ export default class VideoStatusBar extends Widget {
     this.player.emit("activeRandomPlaybackChanged", isActiveRandomPlayback);
   }
 
+  #showPlaylist() {
+    const data = this.player.playlist.data;
+
+    if (this.popover.isOpen) {
+      this.popover.close();
+    } else {
+      this.popover.open();
+    }
+
+    this.emit("showPlaylist", data);
+  }
+
   #togglePiPButtonActive(isPiPActive) {
     const { buttons } = this.controls;
     buttons.pictureInPicture.icon = isPiPActive
@@ -167,6 +195,16 @@ export default class VideoStatusBar extends Widget {
 
     buttons.repeat.on("click", () => this.#toggleRepeatMode());
     buttons.shuffle.on("click", () => this.#toggleActiveRandomPlayback());
+
+    if (this.player.hasPlaylist()) {
+      buttons.playlist.on(
+        "click",
+        this.#player.actions.showPlaylist.createHandler({
+          data: this.#player.playlist.data,
+          player: this.#player,
+        })
+      );
+    }
 
     if (Browser.current === Browser.FIREFOX) {
       buttons.pictureInPicture.enabled = false;

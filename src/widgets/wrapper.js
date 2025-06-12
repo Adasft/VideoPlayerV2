@@ -3,15 +3,7 @@ import { Component } from "./component.js";
 
 export class Wrapper {
   #element;
-  get element() {
-    return this.#element;
-  }
-
   #parentComponent;
-
-  get isConnected() {
-    return this.#element.isConnected();
-  }
 
   constructor(tagName, className, parentComponent) {
     this.#element = Dom.elm(tagName, {
@@ -21,18 +13,16 @@ export class Wrapper {
     this.#parentComponent = parentComponent;
   }
 
-  #insertChildToParent(child, insertMethod) {
-    if (!child || child.isConnected) {
-      return this;
-    }
+  get element() {
+    return this.#element;
+  }
 
-    if (child instanceof Component) {
-      child.insertTo(this, insertMethod === Dom.append ? "append" : "prepend");
-    } else {
-      insertMethod(this.#element.node, child.#element.node);
-    }
+  get isConnected() {
+    return this.#element.isConnected;
+  }
 
-    return this;
+  get parentComponent() {
+    return this.#parentComponent;
   }
 
   /**
@@ -60,7 +50,29 @@ export class Wrapper {
     return this;
   }
 
-  getParentComponent() {
-    return this.#parentComponent;
+  text(text) {
+    const textNode = Dom.text(text);
+    this.#element.append(textNode);
+    return this;
+  }
+
+  class(...classList) {
+    this.#element.addClass(classList);
+    return this;
+  }
+
+  #insertChildToParent(child, insertMethod) {
+    if (!child || child.isConnected) {
+      return this;
+    }
+
+    if (child instanceof Component) {
+      // console.log("SI", child);
+      child.insertTo(this, insertMethod === Dom.append ? "append" : "prepend");
+    } else {
+      insertMethod(this.#element.node, child.#element.node);
+    }
+
+    return this;
   }
 }

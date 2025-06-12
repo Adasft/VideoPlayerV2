@@ -15,9 +15,7 @@ export default class LoaderComponent extends Component {
 
   #init() {
     this.loader.on("visibilityChange", (isVisible) => {
-      this.css({
-        display: isVisible ? "block" : "none",
-      });
+      isVisible ? this.show() : this.hide();
     });
   }
 }

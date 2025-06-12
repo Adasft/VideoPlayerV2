@@ -26,6 +26,10 @@ export default class VolumeControlsComponent extends Component {
 
     this.volumeControl.on("refresh", (hasAudio) => {
       if (hasAudio) {
+        console.log(
+          "Audio detec ",
+          controls.sliders.volume.component.isConnected
+        );
         this.#ref.volumeSliderWrapper.current.add(
           controls.sliders.volume.component
         );
@@ -37,6 +41,7 @@ export default class VolumeControlsComponent extends Component {
     const { sliders } = this.volumeControl.controls;
     const { volume } = sliders;
 
+    console.log("Create: ", volume.component);
     return this.wrapper("div", "player-volume-slider-wrapper")
       .add(volume?.component)
       .toRef(this.#ref.volumeSliderWrapper);

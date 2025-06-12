@@ -1,5 +1,7 @@
 import { Widget } from "../widget.js";
 import SVGIcons from "../../ui/icons.js";
+import Popover from "../popover/popover.js";
+import PopoverComponent from "../popover/popover-component.js";
 
 export default class VolumeControl extends Widget {
   #player;
@@ -28,6 +30,10 @@ export default class VolumeControl extends Widget {
 
     if (this.player.muted) {
       this.#player.controls.buttons.volume.icon = SVGIcons.VOLUME_OFF;
+    } else {
+      this.#player.controls.buttons.volume.icon = this.#getVolumeIcon(
+        this.player.volume
+      );
     }
 
     this.refresh(this.player.hasAudio);
@@ -55,7 +61,11 @@ export default class VolumeControl extends Widget {
   onVolumeChange(volume) {
     const { buttons } = this.controls;
 
-    if (this.player.muted) this.player.muted = false;
+    if (volume === 0) {
+      this.player.muted = true;
+    } else if (this.player.muted) {
+      this.player.muted = false;
+    }
 
     this.player.volume = volume;
     buttons.volume.icon = this.#getVolumeIcon(volume);

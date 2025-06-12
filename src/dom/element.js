@@ -6,9 +6,6 @@ export class DomNode {
   static DOM_TEXT_TYPE = 3;
 
   #node;
-  get node() {
-    return this.#node;
-  }
 
   constructor(tagNameOrText, type) {
     this.#node =
@@ -17,8 +14,16 @@ export class DomNode {
         : document.createTextNode(tagNameOrText);
   }
 
-  isConnected() {
+  get node() {
+    return this.#node;
+  }
+
+  get isConnected() {
     return this.#node.isConnected;
+  }
+
+  get parent() {
+    return this.#node.parentNode;
   }
 
   isChildOf(parent) {
@@ -39,6 +44,96 @@ export class DomElement extends DomNode {
 
     if (children) {
       this.append(children);
+    }
+  }
+
+  get on() {
+    return Dom.eventEmitter.on.bindTarget(this.node);
+  }
+
+  get off() {
+    return Dom.eventEmitter.off.bindTarget(this.node);
+  }
+
+  /**
+   * Appends children to the DOM element.
+   *
+   * @param {(DomNode | Component | string | number)[]} children - The children to append.
+   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is appended.
+   */
+  append(children, callback) {
+    this.#addChildren(children, "append", callback);
+  }
+
+  /**
+   * Prepends children to the DOM element.
+   *
+   * @param {(DomNode | Component | string | number)[]} children - The children to prepend.
+   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is prepended.
+   */
+  prepend(children, callback) {
+    this.#addChildren(children, "prepend", callback);
+  }
+
+  css(styles) {
+    if (!styles) {
+      return;
+    }
+    Object.assign(this.node.style, styles);
+  }
+
+  addClass(...classList) {
+    this.node.classList.add(...classList);
+  }
+
+  removeClass(...classList) {
+    this.node.classList.remove(...classList);
+  }
+
+  toggleClass(className, force) {
+    this.node.classList.toggle(className, force);
+  }
+
+  getBounds() {
+    if (!this.#cacheBounds) {
+      this.#cacheBounds = this.node.getBoundingClientRect();
+    }
+    return this.#cacheBounds;
+  }
+
+  recalculateBounds() {
+    this.#cacheBounds = null;
+  }
+
+  setHTML(html) {
+    this.node.innerHTML = html;
+  }
+
+  disconnect() {
+    // Eliminamos todos los eventos relacionados con el elemento
+    // para evitar que se ejecuten callbacks innecesariamente.
+    this.off();
+
+    if (this.isConnected) {
+      this.node.remove();
+    }
+
+    for (const child of this.#children) {
+      child.disconnect();
+    }
+
+    this.#children.clear();
+  }
+
+  remove() {
+    this.off();
+
+    if (this.isConnected) {
+      this.node.remove();
+    }
+
+    for (const child of this.#children) {
+      child.remove();
     }
   }
 
@@ -78,84 +173,6 @@ export class DomElement extends DomNode {
         callback(child);
       }
     });
-  }
-
-  /**
-   * Appends children to the DOM element.
-   *
-   * @param {(DomNode | Component | string | number)[]} children - The children to append.
-   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is appended.
-   */
-  append(children, callback) {
-    this.#addChildren(children, "append", callback);
-  }
-
-  /**
-   * Prepends children to the DOM element.
-   *
-   * @param {(DomNode | Component | string | number)[]} children - The children to prepend.
-   * @param {((child: DomNode | Component | string | number) => void)} [callback] - A callback function to be called after each child is prepended.
-   */
-  prepend(children, callback) {
-    this.#addChildren(children, "prepend", callback);
-  }
-
-  css(styles) {
-    if (!styles) {
-      return;
-    }
-    Object.assign(this.node.style, styles);
-  }
-
-  addClass(...classNames) {
-    this.node.classList.add(...classNames);
-  }
-
-  removeClass(...classNames) {
-    this.node.classList.remove(...classNames);
-  }
-
-  toggleClass(className, force) {
-    this.node.classList.toggle(className, force);
-  }
-
-  getBounds() {
-    if (!this.#cacheBounds) {
-      this.#cacheBounds = this.node.getBoundingClientRect();
-    }
-    return this.#cacheBounds;
-  }
-
-  recalculateBounds() {
-    this.#cacheBounds = null;
-  }
-
-  setHTML(html) {
-    this.node.innerHTML = html;
-  }
-
-  disconnect() {
-    // Eliminamos todos los eventos relacionados con el elemento
-    // para evitar que se ejecuten callbacks innecesariamente.
-    this.off();
-
-    if (this.isConnected()) {
-      this.node.remove();
-    }
-
-    for (const child of this.#children) {
-      child.disconnect();
-    }
-
-    this.#children.clear();
-  }
-
-  get on() {
-    return Dom.eventEmitter.on.bindTarget(this.node);
-  }
-
-  get off() {
-    return Dom.eventEmitter.off.bindTarget(this.node);
   }
 }
 

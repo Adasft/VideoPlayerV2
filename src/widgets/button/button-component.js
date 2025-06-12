@@ -41,9 +41,11 @@ export default class ButtonComponent extends Component {
   }
 
   onVisibilityChange(isVisible) {
-    this.css({
-      display: isVisible ? "block" : "none",
-    });
+    isVisible ? this.show() : this.hide();
+  }
+
+  onMounted() {
+    this.on("click", this.onClick);
   }
 
   #init() {
@@ -60,8 +62,6 @@ export default class ButtonComponent extends Component {
     button.on("enabledChange", this.onEnabledChange.bind(this));
     button.on("selectedChange", this.onSelectedChange.bind(this));
     button.on("visibilityChange", this.onVisibilityChange.bind(this));
-
-    this.on("click", this.onClick);
   }
 
   #setIcon(icon) {

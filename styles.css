@@ -46,6 +46,20 @@
   }
 }
 
+ *.show {
+  visibility: visible;
+}
+
+*.hide {
+  visibility: hidden;
+}
+
+.popover-container {
+  width: 300px;
+  height: 200px;
+  background: #333;
+}
+
 .player-container {
   position: relative;
   background-color: #111;

@@ -3,12 +3,212 @@ import * as ui from "../../ui/ui-utils.js";
 import SVGIcons from "../../ui/icons.js";
 import PlayerControls from "./player-controls.js";
 import StorageManager from "./storage-manager.js";
-import { formatTime, getRandomId } from "../../utils.js";
+import { formatTime, getRandomId, lookupMapValue } from "../../utils.js";
+import PlayerComponent from "./player-component.js";
 
 const VALID_SKIP_TIMES = [5, 10, 15, 20];
 const DEFAULT_SKIP_TIME = 5;
 
+// class Interceptor {
+//   /**
+//    * Singleton instance of ActionsInterceptor
+//    * @type {Interceptor}
+//    * @private
+//    */
+//   static #instance = null;
+
+//   /**
+//    * Getter of singleton instance of ActionsInterceptor
+//    * @returns {Interceptor}
+//    */
+//   static get shared() {
+//     if (!Interceptor.#instance) {
+//       Interceptor.#instance = new Interceptor();
+//     }
+//     return Interceptor.#instance;
+//   }
+
+//   static SHOW_PLAYLIST = "showPlaylist";
+//   static SHOW_CHAPTERS = "showChapters";
+
+//   #interceptors = new Map();
+
+//   constructor() {
+//     if (Interceptor.#instance) {
+//       throw new Error(
+//         "ActionsInterceptor is a singleton and cannot be instantiated multiple times."
+//       );
+//     }
+//   }
+
+//   register(
+//       interceptorId, playerId,
+//     { name, cancelDefaultAction = false, handler }
+//   ) {
+//     const interceptorMap = lookupMapValue(
+//       this.#interceptors,
+//       interceptorId,
+//       new Map()
+//     );
+//     const playerInterceptors = lookupMapValue(interceptorMap, playerId, []);
+
+//     if (typeof handler !== "function") {
+//       throw new TypeError("Interceptor must be a function.");
+//     }
+
+//     playerInterceptors.push({
+//       id: playerId,
+//       name,
+//       cancelDefaultAction,
+//       handler,
+//     });
+
+//     /**
+//      * this.actionId = Interceptor.shared.createActionId([Interceptor.SHOW_PLAYLIST], player.id);
+//      * Interceptor.shared.define(this.actionId.showPlaylist, {
+//      *  name: "showMyPlaylist",
+//      *  cancelDefaultAction: true,
+//      *  handler: (ctx) => {}
+//      * });
+//      * Interceptor.shared.registerAction(this.actionId.showPlaylist, () => {})
+//      * controls.buttons.showPlaylist.on("click", Interceptor.shared.createHandler(this.actionId.showPlaylist, ctx)
+//     */
+//   }
+
+//   execute(interceptorId, playerId, ctx) {
+//     const interceptorMap = this.#interceptors.get(interceptorId);
+//     if (!interceptorMap) {
+//       return false;
+//     }
+
+//     const playerInterceptors = interceptorMap.get(playerId);
+//     if (!playerInterceptors || playerInterceptors.length === 0) {
+//       return false;
+//     }
+
+//     for (const interceptor of playerInterceptors) {
+//       const event = new InterceptorEvent({
+//         target: ctx.target,
+//         type: interceptor.name,
+//         data: ctx.data,
+//         nativeEvent: ctx.nativeEvent,
+//       });
+
+//       interceptor.handler(event, ctx);
+
+//       if (event.defaultPrevented && interceptor.cancelDefaultAction) {
+//         return true;
+//       }
+//     }
+//     return false;
+//   }
+
+//   delete(id) {
+//     return this.#interceptors.delete(id);
+//   }
+// }
+
+/** 
+//      * this.actionId = Interceptor.shared.createActionId([Interceptor.SHOW_PLAYLIST], player.id);
+//      * player.interceptor.define(Interceptor.actions.SHOW_PLAYLIST, {
+//      *  name: "showMyPlaylist",
+//      *  cancelDefaultAction: true,
+//      *  handler: (ctx) => {}
+//      * });
+//      * player.interceptor.registerAction(Interceptor.actions.SHOW_PLAYLIST, () => {})
+//      * controls.buttons.showPlaylist.on("click", Interceptor.shared.createHandler(this.actionId.showPlaylist, ctx)
+//     
+*/
+
+// player.interceptors.showPlaylist.registerDefaultAction(() => {
+//   console.log("Default action for showPlaylist executed.");
+// });
+
+class InterceptorAction {
+  #actions = [];
+  #defaultAction = null;
+  #defaultActionCanceled = false;
+
+  get hasActions() {
+    return this.#actions.length > 0;
+  }
+
+  cancelDefaultAction() {
+    this.#defaultActionCanceled = true;
+  }
+
+  registerDefaultAction(handler) {
+    if (typeof handler !== "function") {
+      throw new TypeError("Interceptor default action must be a function.");
+    }
+
+    if (this.#defaultAction) {
+      console.warn("Default action already set. Overwriting.");
+    }
+
+    this.#defaultAction = handler;
+  }
+
+  define({ name, handler }) {
+    if (typeof handler !== "function") {
+      throw new TypeError("Action handler must be a function.");
+    }
+
+    if (!name) {
+      throw new Error("Action must have a name.");
+    }
+
+    if (this.#nameAlreadyExists(name)) {
+      throw new Error(`Action "${name}" is already defined.`);
+    }
+
+    this.#actions.push({ name, handler });
+  }
+
+  remove(name) {
+    const index = this.#actions.findIndex((a) => a.name === name);
+    if (index !== -1) {
+      this.#actions.splice(index, 1);
+    } else {
+      console.warn(`Action "${name}" not found.`);
+    }
+  }
+
+  createHandler(ctx) {
+    if (!ctx || typeof ctx !== "object") {
+      throw new TypeError("Context must be an object.");
+    }
+
+    return (event) => {
+      ctx.event = event;
+
+      if (this.hasActions) {
+        this.#actions.forEach((action) => action.handler(ctx));
+      }
+
+      if (!this.#defaultActionCanceled) {
+        this.#defaultAction?.(ctx);
+      }
+    };
+  }
+
+  #nameAlreadyExists(name) {
+    return this.#actions.some((a) => a.name === name);
+  }
+}
+
+class InterceptorActions {
+  showPlaylist = new InterceptorAction();
+  showChapters = new InterceptorAction();
+}
+
 export default class Player extends Widget {
+  /**
+   * Unique identifier for the player instance
+   * @type {string}
+   * @private
+   */
+  #id = `player-${getRandomId()}`;
   /**
    * The current media source object being played
    * @type {Object|null}
@@ -188,6 +388,8 @@ export default class Player extends Widget {
    */
   #storageManager;
 
+  #actions = null;
+
   constructor({
     source,
     width = 400,
@@ -217,11 +419,20 @@ export default class Player extends Widget {
     this.#overwriteStorage = overwriteStorage;
     this.#playbackRate = playbackRate;
     this.#hasPlaylist = Boolean(playlist);
+    this.#actions = new InterceptorActions();
 
     this.#initializeStorage();
     this.#initializeMedia(source, playlist);
     this.#createLoader();
     this.#setupEvents();
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  get actions() {
+    return this.#actions;
   }
 
   // Getters públicos
@@ -328,6 +539,10 @@ export default class Player extends Widget {
   // Estado del reproductor
   get isRandomPlaybackActive() {
     return this.#isRandomPlaybackActive;
+  }
+
+  get isControlsReady() {
+    return this.#isControlsReady;
   }
 
   // Setters con validación y persistencia
@@ -695,3 +910,33 @@ export default class Player extends Widget {
     this.#volumeControl?.refresh(hasAudio);
   }
 }
+
+export function createPlayer(options) {
+  const mountedQueue = [];
+  const player = new Player(options);
+  new PlayerComponent(player);
+  player.once("controlsReady", () => {
+    mountedQueue.forEach((fn) => fn());
+  });
+  return {
+    player,
+    mount(parent) {
+      if (player.isControlsReady) {
+        player.mount(parent);
+      } else {
+        mountedQueue.push(() => player.mount(parent));
+      }
+    },
+  };
+}
+
+// class VideoPlayer {
+//   static #players = new Set()
+
+//   #player;
+
+//   constructor(config) {
+//     this.#player = new Player(config);
+//     VideoPlayer.#players.add(this.#player);
+//   }
+// }
