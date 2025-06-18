@@ -68,9 +68,7 @@ export default class PopoverComponent extends Component {
     });
   }
 
-  onMounted() {
-    console.log("popover mounted");
-  }
+  position;
 
   onStartOpen() {
     if (this.isConnected) return;
@@ -81,15 +79,12 @@ export default class PopoverComponent extends Component {
     const position = this.#getPosition(this.popover.placement);
     if (!position) return;
 
-    const offset =
-      this.#placementAxis === VERTICAL_PLACEMENT
-        ? { x: -this.popover.offset, y: 0 }
-        : { x: 0, y: -this.popover.offset };
+    this.position = position;
 
     this.css({
       position: "absolute",
-      top: `${position.top + offset.x}px`,
-      left: `${position.left + offset.y}px`,
+      top: `${position.top}px`,
+      left: `${position.left}px`,
       zIndex: "999",
     });
 
@@ -101,6 +96,44 @@ export default class PopoverComponent extends Component {
     }
   }
 
+  outsideClickHandler = ({ target }) => {
+    const popoverTargetNode = this.popover.target.component.node;
+    if (!this.node.contains(target) && !popoverTargetNode.contains(target)) {
+      this.#close();
+    }
+  };
+
+  windowResizeHandler = () => {
+    const position = this.#getPosition(this.popover.placement);
+    if (
+      !position ||
+      (position.top === this.position.top &&
+        position.left === this.position.left)
+    )
+      return;
+
+    this.position = position;
+
+    this.css({
+      top: `${position.top}px`,
+      left: `${position.left}px`,
+    });
+
+    this.popover.target.component.resetBounds();
+  };
+
+  onMounted() {
+    Dom.on(document, "click", this.outsideClickHandler);
+    Dom.on(window, "resize", this.windowResizeHandler);
+  }
+
+  onDismount() {
+    Dom.off(document, "click", this.outsideClickHandler);
+    Dom.off(window, "resize", this.windowResizeHandler);
+    this.popover.target.component.resetBounds();
+    this.position = null;
+  }
+
   #init() {
     this.popover.on("startOpen", this.onStartOpen.bind(this));
     this.popover.on("startClose", () => this.#close());
@@ -108,6 +141,7 @@ export default class PopoverComponent extends Component {
 
   #open() {
     this.show();
+    this.node.focus();
     this.popover.emit("opened");
   }
 
@@ -116,30 +150,50 @@ export default class PopoverComponent extends Component {
     this.popover.emit("closed");
   }
 
+  #normalizeBounds(bounds) {
+    return {
+      width: bounds.width,
+      height: bounds.height,
+      top: bounds.top + window.scrollY,
+      left: bounds.left + window.scrollX,
+    };
+  }
+
   #getPosition(placement) {
     const boundaries = {
-      targetBounds: this.popover.target.component.bounds,
-      popoverBounds: this.bounds,
-      playerBounds: this.popover.player.component.bounds,
+      targetBounds: this.#normalizeBounds(this.popover.target.component.bounds),
+      popoverBounds: this.#normalizeBounds(this.bounds),
+      playerBounds: this.#normalizeBounds(this.popover.player.component.bounds),
     };
+
+    const offset =
+      this.#placementAxis === VERTICAL_PLACEMENT
+        ? { x: -this.popover.offset, y: 0 }
+        : { x: 0, y: -this.popover.offset };
 
     if (this.popover.preventOverflow) {
-      return this.#getPositionWithinBounds(placement, boundaries);
+      return this.#getPositionWithinBounds(placement, boundaries, offset);
     }
 
-    return this.#getPositionAllowingOverflow(placement, boundaries);
+    return this.#getPositionAllowingOverflow(placement, boundaries, offset);
   }
 
-  #resolvePositionByAxis(axisPosition, crossAxisPosition) {
+  #resolvePositionByAxis(axisPosition, crossAxisPosition, offset) {
     const isVerticalPlacement = this.#placementAxis === VERTICAL_PLACEMENT;
+    const top = isVerticalPlacement ? axisPosition : crossAxisPosition;
+    const left = isVerticalPlacement ? crossAxisPosition : axisPosition;
 
     return {
-      top: isVerticalPlacement ? axisPosition : crossAxisPosition,
-      left: isVerticalPlacement ? crossAxisPosition : axisPosition,
+      top: top + offset.x,
+      left: left + offset.y,
     };
   }
 
-  #getPositionAllowingOverflow(placement, { targetBounds, popoverBounds }) {
+  #getPositionAllowingOverflow(
+    placement,
+    { targetBounds, popoverBounds },
+    offset
+  ) {
     const { principalAxis, mainDimension, crossAxis } =
       placementConfiguration[placement];
     const { start, dimension } = crossAxis;
@@ -152,10 +206,10 @@ export default class PopoverComponent extends Component {
       targetBounds[dimension] / 2 -
       popoverBounds[dimension] / 2;
 
-    return this.#resolvePositionByAxis(axisPosition, crossAxisPosition);
+    return this.#resolvePositionByAxis(axisPosition, crossAxisPosition, offset);
   }
 
-  #getPositionWithinBounds(placement, boundaries) {
+  #getPositionWithinBounds(placement, boundaries, offset) {
     const axisPosition = this.#calculatePrincipalAxisPosition(
       placement,
       boundaries
@@ -169,7 +223,7 @@ export default class PopoverComponent extends Component {
       return null;
     }
 
-    return this.#resolvePositionByAxis(axisPosition, crossAxisPosition);
+    return this.#resolvePositionByAxis(axisPosition, crossAxisPosition, offset);
   }
 
   #calculateAvailableSpace(

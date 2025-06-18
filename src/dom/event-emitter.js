@@ -480,6 +480,11 @@ export default class EventEmitter {
   }
 
   #addDelegatedEvent(targetOrQuery, eventType, listener, options) {
+    if (targetOrQuery instanceof Window) {
+      targetOrQuery.addEventListener(eventType, listener, options);
+      return;
+    }
+
     if (targetOrQuery instanceof Document) {
       targetOrQuery = targetOrQuery.documentElement;
     }
@@ -528,6 +533,11 @@ export default class EventEmitter {
   }
 
   #removeDelegatedEvent(targetOrQuery, eventType, listener) {
+    if (targetOrQuery instanceof Window) {
+      targetOrQuery.removeEventListener(eventType, listener);
+      return;
+    }
+
     if (targetOrQuery instanceof Document) {
       targetOrQuery = targetOrQuery.documentElement;
     }

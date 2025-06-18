@@ -28,7 +28,7 @@ export default class SliderComponent extends Component {
     super(widget);
 
     this.#throttledBoundsRecalculation = throttle(
-      this.#recalculateBounds.bind(this),
+      this.#resetBounds.bind(this),
       1000
     );
 
@@ -181,12 +181,12 @@ export default class SliderComponent extends Component {
     }
   }
 
-  #recalculateBounds() {
+  #resetBounds() {
     const { tracks } = this.slider;
     for (const track of tracks) {
-      track.component.element.recalculateBounds();
+      track.component.element.resetBounds();
     }
-    this.element.recalculateBounds();
+    this.element.resetBounds();
   }
 
   #bindMouseEvents() {

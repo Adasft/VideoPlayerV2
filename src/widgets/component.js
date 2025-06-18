@@ -196,6 +196,10 @@ export class Component {
     this.#element.addClass("hide");
   }
 
+  resetBounds() {
+    this.#element.resetBounds();
+  }
+
   addClass(className) {
     this.#element.addClass(className);
   }

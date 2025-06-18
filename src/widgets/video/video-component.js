@@ -125,19 +125,6 @@ export default class VideoComponent extends Component {
     this.video.emit("ended");
   }
 
-  onMounted() {
-    // Eventos del DOM
-    this.on("click", this.onClick.bind(this));
-    this.on.ignoreDelegation("waiting", this.onWaiting.bind(this));
-    this.on.ignoreDelegation("playing", this.onPlaying.bind(this));
-    this.on.ignoreDelegation("timeupdate", this.onTimeUpdate.bind(this));
-    this.on.ignoreDelegation("pause", this.onPause.bind(this));
-    this.on.ignoreDelegation("play", this.onPlay.bind(this));
-    this.on.ignoreDelegation("progress", this.onProgress.bind(this));
-    this.on.ignoreDelegation("error", this.onError.bind(this));
-    this.on.ignoreDelegation("ended", this.onEnded.bind(this));
-  }
-
   #init() {
     const { video } = this;
     // Eventos del controlador
@@ -148,10 +135,21 @@ export default class VideoComponent extends Component {
     video.on("loopChange", this.onLoopChange.bind(this));
 
     this.#initializeVideoData(video.autoplay ? true : video.muted);
+
+    // Eventos del DOM
     this.on.ignoreDelegation(
       "loadedmetadata",
       this.onLoadedMetaData.bind(this)
     );
+    this.on("click", this.onClick.bind(this));
+    this.on.ignoreDelegation("waiting", this.onWaiting.bind(this));
+    this.on.ignoreDelegation("playing", this.onPlaying.bind(this));
+    this.on.ignoreDelegation("timeupdate", this.onTimeUpdate.bind(this));
+    this.on.ignoreDelegation("pause", this.onPause.bind(this));
+    this.on.ignoreDelegation("play", this.onPlay.bind(this));
+    this.on.ignoreDelegation("progress", this.onProgress.bind(this));
+    this.on.ignoreDelegation("error", this.onError.bind(this));
+    this.on.ignoreDelegation("ended", this.onEnded.bind(this));
   }
 
   #initializeVideoData(muted) {

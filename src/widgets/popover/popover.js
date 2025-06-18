@@ -16,7 +16,6 @@ export default class Popover extends Widget {
     delay = 0,
     placement = "top",
     offset = 0,
-    arrowAlign = "center",
   }) {
     super("popover");
 
@@ -30,7 +29,6 @@ export default class Popover extends Widget {
     this.#delay = delay;
     this.#placement = placement;
     this.#offset = offset;
-    this.#arrowAlign = arrowAlign;
 
     this.on("opened", () => {
       this.#isOpen = true;
@@ -59,10 +57,6 @@ export default class Popover extends Widget {
 
   get offset() {
     return this.#offset;
-  }
-
-  get arrowAlign() {
-    return this.#arrowAlign;
   }
 
   get isOpen() {

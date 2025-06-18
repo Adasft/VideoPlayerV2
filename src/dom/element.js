@@ -101,7 +101,7 @@ export class DomElement extends DomNode {
     return this.#cacheBounds;
   }
 
-  recalculateBounds() {
+  resetBounds() {
     this.#cacheBounds = null;
   }
 
