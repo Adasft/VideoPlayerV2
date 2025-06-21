@@ -1,8 +1,7 @@
 import { Browser, formatTime } from "../../utils.js";
 import { Widget } from "../widget.js";
 import SVGIcons from "../../ui/icons.js";
-import PopoverComponent from "../popover/popover-component.js";
-import Popover from "../popover/popover.js";
+import PlaylistPopover from "../popover/playlist-popover/playlist-popover.js";
 
 export default class VideoStatusBar extends Widget {
   #player;
@@ -11,6 +10,10 @@ export default class VideoStatusBar extends Widget {
     none: SVGIcons.REPEAT,
     infinite: SVGIcons.REPEAT,
     once: SVGIcons.REPEAT_ONCE,
+  };
+
+  popovers = {
+    playlist: null,
   };
 
   constructor({ player }) {
@@ -22,19 +25,20 @@ export default class VideoStatusBar extends Widget {
       this.#togglePiPButtonActive(false);
     });
 
-    this.#player.actions.showPlaylist.registerDefaultAction(() =>
-      this.#showPlaylist()
-    );
+    if (this.#player.hasPlaylist()) {
+      this.#player.actions.showPlaylist.registerDefaultAction(() =>
+        this.#showPlaylist()
+      );
 
-    this.popover = new Popover({
-      player: this.player,
-      target: this.controls.buttons.playlist,
-      placement: "top",
-      preventOverflow: false,
-      delay: 0,
-      offset: 20,
-    });
-    const popoverComponent = new PopoverComponent(this.popover);
+      this.popovers.playlist = new PlaylistPopover({
+        player: this.player,
+        target: this.controls.buttons.playlist,
+        placement: "top",
+        preventOverflow: false,
+        delay: 0,
+        offset: 20,
+      });
+    }
   }
 
   get player() {
@@ -155,17 +159,14 @@ export default class VideoStatusBar extends Widget {
     buttons.shuffle.selected = isActiveRandomPlayback;
     buttons.next.enabled = true;
 
-    this.player.emit("activeRandomPlaybackChanged", isActiveRandomPlayback);
+    // this.player.emit("activeRandomPlaybackChanged", isActiveRandomPlayback);
+    this.player.playlist.isActiveRandomPlayback = isActiveRandomPlayback;
   }
 
   #showPlaylist() {
     const data = this.player.playlist.data;
 
-    if (this.popover.isOpen) {
-      this.popover.close();
-    } else {
-      this.popover.open();
-    }
+    this.popovers.playlist?.toggle();
 
     this.emit("showPlaylist", data);
   }

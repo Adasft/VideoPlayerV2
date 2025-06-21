@@ -1,5 +1,6 @@
 import { Component } from "../component.js";
 import { Dom } from "../../dom/dom-utils.js";
+import PlaylistPopoverComponent from "../popover/playlist-popover/playlist-popover-component.js";
 
 export default class VideoStatusBarComponent extends Component {
   #refs = {
@@ -35,6 +36,10 @@ export default class VideoStatusBarComponent extends Component {
       this.#createVideoStatusWrapper(),
       this.#createVideoTimelineWrapper()
     );
+
+    if (this.videoStatusBar.player.hasPlaylist()) {
+      new PlaylistPopoverComponent(this.videoStatusBar.popovers.playlist);
+    }
 
     this.videoStatusBar.on("refresh", this.onRefresh.bind(this));
   }

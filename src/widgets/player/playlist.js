@@ -27,20 +27,46 @@ import { shuffle, orderBy, getRandomId } from "../../utils.js";
  */
 
 export default class PlayList {
+  #title;
   #player;
   #sources;
   #currentIndex;
-  loop;
+  #loop;
+  #isShuffleActive = false;
 
-  constructor({ player, sources, startIndex = 0, loop = false }) {
+  constructor({ title = "", player, sources, startIndex = 0, loop = false }) {
+    this.#title = title;
     this.#player = player;
     this.#sources = this.#mapSourceByIndex(sources);
     this.#currentIndex = startIndex;
-    this.loop = loop;
+    this.#loop = loop;
+  }
 
-    this.#player.on("activeRandomPlaybackChanged", (isShuffleActive) =>
-      this.#reorganizeSources(isShuffleActive)
-    );
+  get title() {
+    return this.#title;
+  }
+
+  get isActiveRandomPlayblack() {
+    return this.#isShuffleActive;
+  }
+
+  set isActiveRandomPlayblack(active) {
+    const state = Boolean(active);
+
+    if (this.#isShuffleActive === state) {
+      return;
+    }
+
+    this.#isShuffleActive = Boolean(state);
+    this.#reorganizeSources();
+  }
+
+  get loop() {
+    return this.#loop;
+  }
+
+  set loop(loop) {
+    this.#loop = Boolean(loop);
   }
 
   get sources() {
@@ -80,7 +106,7 @@ export default class PlayList {
       currentSource: this.currentSource,
       isEnd: this.isEndOfList,
       isStart: this.isStartOfList,
-      loop: this.loop,
+      loop: this.#loop,
       isShuffleActive: this.#player.isRandomPlaybackActive,
     };
   }
@@ -101,7 +127,7 @@ export default class PlayList {
   }
 
   next() {
-    if (this.isEndOfList && !this.loop) {
+    if (this.isEndOfList && !this.#loop) {
       return;
     }
 
@@ -117,13 +143,13 @@ export default class PlayList {
   prev() {
     if (
       this.#player.currentTime >= 5 ||
-      (!this.loop && this.#currentIndex === 0)
+      (!this.#loop && this.#currentIndex === 0)
     ) {
       this.#player.currentTime = 0;
       return;
     }
 
-    if (this.isStartOfList && !this.loop) {
+    if (this.isStartOfList && !this.#loop) {
       return;
     }
 
@@ -161,11 +187,11 @@ export default class PlayList {
     }));
   }
 
-  #reorganizeSources(isShuffleActive) {
+  #reorganizeSources() {
     const currentActiveSource = this.#sources
       .splice(this.#currentIndex, 1)
       .at();
-    if (isShuffleActive) {
+    if (this.#isShuffleActive) {
       this.#sources = shuffle(this.#sources);
       this.#sources.unshift(currentActiveSource);
       this.#currentIndex = 0;

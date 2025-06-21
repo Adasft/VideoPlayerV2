@@ -890,7 +890,10 @@ export default class Player extends Widget {
       currentSource.currentTime = 0;
     }
 
-    if (!this.hasPlaylist() || (this.playlist.isEndOfList && !this.loop)) {
+    if (
+      !this.hasPlaylist() ||
+      (this.playlist.isEndOfList && !this.loop && ! this.playlist.loop)
+    ) {
       this.controls.buttons.play.hide();
       this.controls.buttons.reload.show();
       return;

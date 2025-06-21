@@ -72,4 +72,12 @@ export default class Popover extends Widget {
     if (!this.#isOpen) return;
     this.emit("startClose");
   }
+
+  toggle() {
+    if (this.#isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
+  }
 }

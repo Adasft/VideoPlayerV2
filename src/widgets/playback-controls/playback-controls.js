@@ -75,6 +75,7 @@ export default class PlaybackControls extends Widget {
 
       this.player.playlist.next();
 
+      console.log("in loop", this.player.playlist.loop);
       if (this.player.playlist.isEndOfList && !this.player.playlist.loop) {
         buttons.next.enabled = false;
       }

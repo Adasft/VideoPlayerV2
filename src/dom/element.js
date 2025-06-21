@@ -79,7 +79,16 @@ export class DomElement extends DomNode {
     if (!styles) {
       return;
     }
-    Object.assign(this.node.style, styles);
+
+    const { properties, ...rules } = styles;
+
+    if (properties) {
+      Object.keys(properties).forEach((prop) =>
+        this.node.style.setProperty(prop, properties[prop])
+      );
+    }
+
+    Object.assign(this.node.style, rules);
   }
 
   addClass(...classList) {

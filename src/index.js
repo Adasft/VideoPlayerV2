@@ -93,7 +93,7 @@ const player = createPlayer({
     ],
   },
   volume: 0.5,
-  width: 1200,
+  width: 700,
   height: 700,
   muted: false,
   enableStorage: true,
@@ -160,6 +160,32 @@ player.mount(document.body);
 // player2Component.mount(document.body);
 
 window.player = player;
+
+// const player2 = createPlayer({
+//   source: {
+//     src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+//     title: "Este es un video con un titulo",
+//     currentTime: 2,
+//     chapters: [
+//       { start: 0, end: 200, title: "Chapter 1" },
+//       { start: 200, end: 270, title: "Chapter 2" },
+//       { start: 270, end: 400, title: "Chapter 3" },
+//       { start: 400, end: 410, title: "Chapter 4" },
+//       { start: 410, end: 500, title: "Chapter 4" },
+//       { start: 500, end: 596.474195, title: "Chapter 5" },
+//     ],
+//   },
+//   volume: 0.5,
+//   width: 700,
+//   height: 700,
+//   muted: false,
+//   enableStorage: false,
+//   overwriteStorage: false,
+//   autoplay: false,
+//   skipTime: 10,
+// });
+
+// player2.mount(document.body);
 
 // const stepSlider = new StepsSlider({
 //   value: 0,
