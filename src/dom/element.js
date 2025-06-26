@@ -1,5 +1,5 @@
-import { Dom } from "./dom-utils.js";
 import { Component } from "../widgets/component.js";
+import EventEmitter from "./events/event-emitter.js";
 
 export class DomNode {
   static DOM_ELEMENT_TYPE = 1;
@@ -48,11 +48,11 @@ export class DomElement extends DomNode {
   }
 
   get on() {
-    return Dom.eventEmitter.on.bindTarget(this.node);
+    return EventEmitter.shared.on.bindTarget(this.node);
   }
 
   get off() {
-    return Dom.eventEmitter.off.bindTarget(this.node);
+    return EventEmitter.shared.off.bindTarget(this.node);
   }
 
   /**

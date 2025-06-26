@@ -1,15 +1,9 @@
-import EventEmitter from "./event-emitter.js";
+import EventEmitter from "./events/event-emitter.js";
 import { DomElement, DomText } from "./element.js";
 
 export class Dom {
-  static #eventEmitter = EventEmitter.getInstance();
-
-  static get eventEmitter() {
-    return this.#eventEmitter;
-  }
-
   static on(target, eventType, listener, options) {
-    this.#eventEmitter.registerEvent(
+    EventEmitter.shared.proxy.attach(
       target,
       eventType,
       listener,
@@ -19,11 +13,11 @@ export class Dom {
   }
 
   static off(target, eventType, listener) {
-    this.#eventEmitter.unregisterEvent(target, eventType, listener, true);
+    EventEmitter.shared.proxy.detach(target, eventType, listener, true);
   }
 
   static once(target, eventType, listener) {
-    this.#eventEmitter.on.ignoreDelegation(target, eventType, listener, {
+    EventEmitter.shared.on.ignoreDelegation(target, eventType, listener, {
       once: true,
     });
   }
