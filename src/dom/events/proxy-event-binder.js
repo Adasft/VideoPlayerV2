@@ -1,10 +1,40 @@
 import { PROXY_OFF_CALL_NAME } from "./event-emitter.js";
 
 export class ProxyEventBinder extends Function {
-  #callName;
+  /**
+   * Name of the call being made, such as "on" or "off".
+   * This is used to determine the type of event binding or unbinding operation.
+   * @type {"on" | "off"}
+   */
+  eventCallType;
+
+  /**
+   * Handler for delegated events.
+   * This function is invoked when an event is delegated to a target or query.
+   * @type {Function}
+   */
   #delegateHandler;
+
+  /**
+   * Handler for non-delegated events.
+   * This function is invoked when an event is not delegated and is directly bound to a target.
+   * @type {Function}
+   */
   #nonDelegateHandler;
 
+  /**
+   * ProxyEventBinder is a class that allows you to bind and unbind event listeners
+   * to a target element or query using a proxy. It provides a way to handle delegated
+   * and non-delegated events in a flexible manner.
+   *
+   * @param {Object} options - Options for the ProxyEventBinder.
+   * @param {string} options.callName - The name of the call (e.g., "on" or "off").
+   * @param {Function} options.delegateHandler - The handler for delegated events.
+   * @param {Function} options.nonDelegateHandler - The handler for non-delegated events.
+   * @throws {Error} If callName, delegateHandler, or nonDelegateHandler are not provided.
+   * @returns {Proxy<ProxyEventBinder>} An instance of ProxyEventBinder that can be used
+   * to bind and unbind event listeners.
+   */
   constructor({ callName, delegateHandler, nonDelegateHandler }) {
     super();
     this.target = null;
@@ -15,7 +45,7 @@ export class ProxyEventBinder extends Function {
       );
     }
 
-    this.#callName = callName;
+    this.eventCallType = callName;
     this.#delegateHandler = delegateHandler;
     this.#nonDelegateHandler = nonDelegateHandler;
 
@@ -27,34 +57,38 @@ export class ProxyEventBinder extends Function {
   }
 
   /**
-   * Esta función se invoca cuando se llama a un método de la clase `ProxyEventBinder`,
-   * como `on`, `off` o `ignoreDelegation`, y se decide ejecutar el método correspondiente
-   * en la instancia de `EventManager`. Se encarga de normalizar los argumentos y de
-   * delegar la llamada al método adecuado en `EventManager`.
+   * Internal handler that is called whenever a method such as `on`, `off`, or `ignoreDelegation`
+   * is invoked on the `ProxyEventBinder` class. It normalizes the arguments and delegates
+   * the call to the corresponding method on the internal `EventManager` instance.
    *
-   * Se ejecuta cuando se invocan los métodos `on` o `off` con la siguiente firma:
-   * `on(target, eventType, listener, options)` o `off(target, eventType, listener)`.
+   * This function supports multiple overloads to provide flexibility in how arguments are passed.
    *
-   * **Sobrecarga 1**: Si el primer argumento es un `Document` o `HTMLElement`, o incluso un selector en forma de `string`,
-   * y el segundo argumento es el tipo de evento (`eventType`), el tercer argumento es el `listener`
-   * y el cuarto es un objeto de opciones de tipo `boolean` o `AddEventListenerOptions`.
+   * Overload 1:
+   * When using the signature:
+   * `on(target, eventType, listener, options)`
    *
-   * **Sobrecarga 2**: Si no se pasa el primer argumento como un objeto del DOM, la llamada aún es válida
-   * si el primer argumento es el tipo de evento (`eventType`), el segundo es el `listener`,
-   * y el tercero es el objeto de opciones.
+   * - `target`: A DOM element (`Document` | `HTMLElement`) or a CSS selector string
+   * - `eventType`: A valid event type (e.g., `"click"`, `"keydown"`)
+   * - `listener`: The event handler function
+   * - `options`: A boolean or an `AddEventListenerOptions` object
+   * - `ignoreDelegation`: Optional boolean to skip delegation
+   *
+   * Overload 2:
+   * When using the signature:
+   * `on(eventType, listener, options)`
+   *
+   * - `eventType`: A valid event type
+   * - `listener`: The event handler function
+   * - `options`: A boolean or `AddEventListenerOptions`
+   * - `ignoreDelegation`: Optional boolean
    *
    * @overload
    * @param {[Document | HTMLElement | string, keyof DocumentEventMap, (event: DocumentEventMap[keyof DocumentEventMap]) => void, boolean | AddEventListenerOptions, boolean]} args
-   *   Los argumentos para configurar un delegado de eventos. El primer parámetro puede ser un elemento del DOM o un selector como cadena de texto.
-   *   El segundo es el tipo de evento, el tercero es el `listener` (función del manejador de eventos),
-   *   y el cuarto es el conjunto de opciones (puede ser un `boolean` o `AddEventListenerOptions`).
-   * @returns {any} El resultado de la ejecución del método delegado correspondiente.
+   * @returns {any} The result of the delegated method on the `EventManager` instance.
    *
    * @overload
    * @param {[keyof DocumentEventMap, (event: DocumentEventMap[keyof DocumentEventMap]) => void, boolean | AddEventListenerOptions, boolean]} args
-   *   Los argumentos cuando el primer parámetro es un tipo de evento, el segundo es un `listener`,
-   *   y el tercero es un conjunto de opciones (de tipo `boolean` o `AddEventListenerOptions`).
-   * @returns {any} El resultado de la ejecución del método delegado correspondiente.
+   * @returns {any} The result of the delegated method on the `EventManager` instance.
    */
   execute(args) {
     if (this.#isOffCallWithoutArguments(args)) {
@@ -69,45 +103,66 @@ export class ProxyEventBinder extends Function {
   }
 
   /**
-   * Configura un delegado de eventos para un `target` específico.
+   * Registers an event listener on a specific target that bypasses event delegation.
    *
-   * **Sobrecarga 1:**
-   * Si el `target` es de tipo `string`, la función se utiliza para enlazar un tipo de evento
-   * a un delegado. En este caso, el `target` almacena el tipo de evento y el `eventType`
-   * toma el valor del listener, mientras que `listener` recibe el valor de las opciones.
+   * This method supports two usage patterns (overloads):
    *
+   * 1. **Overload 1 (Simplified usage with implicit target):**
+   *    - When the first argument `target` is a string, it is treated as the event type.
+   *    - The internal bound target (previously set with a method like `bindTarget`) will be used.
+   *    - The second argument is the listener function, and the third argument is the options object.
    *
-   * **Sobrecarga 2:**
-   * Si el `target` no es de tipo `string`, se utiliza para delegar eventos a un elemento
-   * del DOM específico. En este caso, el `target` es un elemento del DOM, y el tipo de
-   * evento es el valor del parámetro `eventType`.
+   *    Example:
+   *    ```js
+   *    ignoreDelegation("click", (event) => { console.log("Clicked"); }, { once: true });
+   *    ```
+   *
+   * 2. **Overload 2 (Explicit DOM target):**
+   *    - When the first argument `target` is a `Document` or `HTMLElement`, the event listener
+   *      is attached directly to this element, bypassing delegation.
+   *    - The second argument is the event type, the third is the listener function,
+   *      and the fourth is the options object.
+   *
+   *    Example:
+   *    ```js
+   *    ignoreDelegation(document.body, "click", (event) => { console.log("Clicked"); }, { passive: true });
+   *    ```
+   *
+   * Internally, this method normalizes arguments and then calls the underlying `execute()` method,
+   * passing a flag to explicitly disable delegation.
    *
    * @overload
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento
-   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} listener - Función que se ejecutará al dispararse el evento
-   * @param {boolean | AddEventListenerOptions} options - Opciones del evento
-   * @return {void}
+   * @param {keyof DocumentEventMap} eventType - The type of event (e.g., `"click"`, `"keydown"`).
+   * @param {(event: DocumentEventMap[keyof DocumentEventMap]) => void} listener - The event handler callback function.
+   * @param {boolean | AddEventListenerOptions} [options] - Optional options to control event listener behavior.
+   * @returns {void}
    *
    * @overload
-   * @param {Document | HTMLElement} target - Elemento al que se le agregará el listener o query para delegación de eventos
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento
-   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} listener - Función que se ejecutará al dispararse el evento
-   * @param {boolean | AddEventListenerOptions} options - Opciones del evento
-   * @return {void}
+   * @param {Document | HTMLElement} target - The DOM element to which the event listener will be attached directly.
+   * @param {keyof DocumentEventMap} eventType - The type of event.
+   * @param {(event: DocumentEventMap[keyof DocumentEventMap]) => void} listener - The event handler callback function.
+   * @param {boolean | AddEventListenerOptions} [options] - Optional options to control event listener behavior.
+   * @returns {void}
    */
   ignoreDelegation = (target, eventType, listener, options) => {
     let args = [target, eventType, listener, options, false];
     /**
-     * Si el `target` es de tipo `string`, esto indica que el `target` está enlazado a un evento específico.
-     * En este caso, el `target` almacena el tipo de evento, mientras que `eventType` toma el valor del listener
-     * y `listener` recibe el valor de `options`.
+     * When the `target` parameter is a string, it means the method is being called
+     * with an implicit bound target. In this case:
+     * - `target` actually represents the event type (e.g., "click"),
+     * - `eventType` is the event listener function,
+     * - `listener` is the event options (e.g., `{ once: true }`).
      *
-     * @example
-     * Este comportamiento se utiliza de la siguiente manera:
+     * The method assumes that a target element was previously bound via `this.target`.
+     * If no target has been bound, it throws an error.
+     *
+     * Example usage in this mode:
      * - ignoreDelegation("click", () => {}, { once: true });
      *
-     * @example
-     * Si el `target` no es de tipo `string`, entonces la función se usa de la siguiente manera:
+     * When the `target` is not a string, it is treated as the actual DOM element
+     * to which the event listener will be attached directly.
+     *
+     * Example usage in this mode:
      * - ignoreDelegation(document, "click", () => {}, { once: true });
      */
     if (typeof target === "string") {
@@ -144,7 +199,7 @@ export class ProxyEventBinder extends Function {
   #isOffCallWithoutArguments(args) {
     return (
       args.length === 0 &&
-      this.#callName === PROXY_OFF_CALL_NAME &&
+      this.eventCallType === PROXY_OFF_CALL_NAME &&
       this.#hasBindedTarget()
     );
   }
@@ -156,7 +211,7 @@ export class ProxyEventBinder extends Function {
   }
 
   #isEventListenerCall(args) {
-    return typeof args[0] === "string" && args.length <= 4;
+    return typeof args[0] === "string" && typeof args[1] === "function";
   }
 
   #handleEventListenerCall(args) {
@@ -176,8 +231,9 @@ export class ProxyEventBinder extends Function {
   #invokeDelegateHandler(args) {
     const [targetOrQuery, eventType, listener, options = {}, delegate = true] =
       args;
+
     const handler = delegate ? this.#delegateHandler : this.#nonDelegateHandler;
-    if (this.#callName === PROXY_OFF_CALL_NAME) {
+    if (this.eventCallType === PROXY_OFF_CALL_NAME) {
       return handler(targetOrQuery, eventType, listener, delegate);
     }
     return handler(targetOrQuery, eventType, listener, options, delegate);

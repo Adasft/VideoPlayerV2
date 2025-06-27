@@ -176,6 +176,8 @@ docker-compose.override.yml
 *.seed
 *.dump
 
+rules.md
 ideas.js
 test.html
 todo.md
+test/100.html

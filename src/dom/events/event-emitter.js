@@ -2,36 +2,60 @@ import { getRandomId, lookupMapValue, toSnakeCase } from "../../utils.js";
 import { EventProxyManager } from "./event-proxy-manager.js";
 import { NonDelegableEventHandler } from "./non-delegable-event-handler.js";
 
+/**
+ * Constant representing the name of the method used to add event listeners
+ * in the EventEmitter proxy.
+ *
+ * @type {"on"}
+ */
 export const PROXY_ON_CALL_NAME = "on";
+
+/**
+ * Constant representing the name of the method used to remove event listeners
+ * in the EventEmitter proxy.
+ *
+ * @type {"off"}
+ */
 export const PROXY_OFF_CALL_NAME = "off";
 
 /**
- * Prefijo que se agrega al atributo on- para identificar los listeners
- * asociados a un elemento
+ * Prefix used in `on-` attributes to identify listeners
+ * associated with an element.
  *
  * @type {"on-"}
  */
 const EVENT_PREFIX = "on-";
+
 /**
- * Prefijo que se agrega al atributo data- para identificar los listeners
- * asociados a un elemento
+ * Prefix used in `data-` attributes to mark listeners
+ * associated with an element.
  *
  * @type {"data-"}
  */
 const DATA_PREFIX = "data-";
+
 /**
- * Prefijo que se agrega al atributo data-on-<id> para identificar el listener
- * que se delega a través de un query
+ * Full prefix used in delegated event attributes,
+ * e.g., `data-on-<id>`, to identify listeners bound via query delegation.
  *
  * @type {"data-on-"}
  */
 const FULL_PREFIX = `${DATA_PREFIX}${EVENT_PREFIX}`;
 
 export default class EventEmitter {
+  /**
+   * Singleton instance of EventEmitter.
+   * This ensures that only one instance of EventEmitter exists throughout the application.
+   * It is used to manage delegated and non-delegated events across the application.
+   *
+   * @type {EventEmitter}
+   */
   static #instance = null;
 
   /**
-   * Mapa de eventos que contiene un mapa de querys y un conjunto de listeners
+   * Map that stores all delegated events.
+   * The keys are event types (e.g., "click", "mouseover"), and the values are Maps
+   * where the keys are queries (e.g., ".my-element", "#myElement") and the values are Sets of listeners.
    *
    * @type {Map<keyof DocumentEventMap, Map<string, Set<((event: DocumentEventMap[keyof DocumentEventMap]) => void)>>>}
    *
@@ -46,7 +70,24 @@ export default class EventEmitter {
    *
    */
   #eventsMap = new Map();
+
+  /**
+   * Proxy manager for handling delegated events and non-delegable events.
+   * This manager is responsible for adding and removing event listeners
+   * to elements or delegating events to queries.
+   *
+   * @type {EventProxyManager}
+   */
   #eventProxyManager = new EventProxyManager(this);
+
+  /**
+   * Non-delegable event handler that manages events that cannot be delegated
+   * through queries, such as `mouseenter` and `mouseleave`.
+   * This handler provides a way to handle these events by attaching
+   * additional listeners to the target element.
+   *
+   * @type {NonDelegableEventHandler}
+   */
   #nonDelegableEventHandler = new NonDelegableEventHandler(this);
 
   constructor() {
@@ -57,6 +98,15 @@ export default class EventEmitter {
     }
   }
 
+  /**
+   * Returns the singleton instance of EventEmitter.
+   *
+   * @static
+   * @returns {EventEmitter} The singleton instance of EventEmitter.
+   *
+   * @example
+   * EventEmitter.shared.on(document, "click", () => console.log("Clicked!"));
+   */
   static get shared() {
     if (!EventEmitter.#instance) {
       EventEmitter.#instance = new EventEmitter();
@@ -66,43 +116,60 @@ export default class EventEmitter {
   }
 
   /**
-   * Agrega un listener a un elemento o delega un evento a un query
+   * Returns a proxy for adding delegated event listeners.
+   * This proxy allows for adding event listeners to elements or delegating events to queries.
    *
-   * @param {Document | HTMLElement | string} targetOrQuery - Elemento al que se le agregará el listener o query para delegación de eventos
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento
-   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} listener - Función que se ejecutará al dispararse el evento
-   * @param {boolean | AddEventListenerOptions} options - Opciones del evento
-   *
-   * @example
-   *
-   * // Agregar un listener a un elemento
-   * Dom.on(document.getElementById("myElement"), "click", () => console.log("Element clicked"));
-   *
-   * // Delegar un evento a un query
-   * Dom.on(".my-element", "click", () => console.log("Element clicked"));
-   *
+   * @returns {ProxyEventBinder} A proxy object with an `on` method for adding event listeners.
    */
   get on() {
     return this.#eventProxyManager.on;
   }
 
   /**
-   * Elimina un listener a un elemento o delega un evento a un query.
+   * Returns a proxy for removing delegated event listeners.
+   * This proxy allows for removing event listeners from elements or queries.
    *
-   * @param {Document | HTMLElement | string} targetOrQuery - Elemento al que se le eliminará el listener o query.
-   * @param {keyof DocumentEventMap} [eventType] - Tipo de evento.
-   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} [listener] - Función asociada al listener.
-   *
-   * @returns {boolean} Retorna true si se eliminó el listener y false si no.
+   * @returns {ProxyEventBinder} A proxy object with an `off` method for removing event listeners.
    */
   get off() {
     return this.#eventProxyManager.off;
   }
 
+  /**
+   * Returns the event proxy manager, which is responsible for managing delegated events.
+   * This manager provides methods for attaching and detaching event listeners
+   * to elements or delegating events to queries.
+   *
+   * @returns {EventProxyManager} The event proxy manager instance.
+   *
+   * @example
+   * const proxy = EventEmitter.shared.proxy;
+   * proxy.attach(document, "click", () => console.log("Clicked!"));
+   */
   get proxy() {
     return this.#eventProxyManager;
   }
 
+  /**
+   * Adds a delegated event listener to a target or query.
+   * If the target is an Element, it will delegate the event to a query
+   * by assigning a data attribute with a specific id.
+   * If the target is a Window, it will add the event listener directly.
+   *
+   * @param {Window | Document | Element | string} targetOrQuery - The target element or query
+   * @param {keyof DocumentEventMap} eventType - The type of event to listen for
+   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} listener - The function to execute when the event is triggered
+   * @param {boolean | AddEventListenerOptions} [options] - Options for the event listener
+   * @returns {void}
+   *
+   * @example
+   * EventEmitter.shared.addDelegatedEvent(
+   *   document.querySelector(".my-element"),
+   *   "click",
+   *   (event) => console.log("Element clicked!", event),
+   *   { once: true }
+   * );
+   */
   addDelegatedEvent(targetOrQuery, eventType, listener, options) {
     if (targetOrQuery instanceof Window) {
       targetOrQuery.addEventListener(eventType, listener, options);
@@ -152,6 +219,24 @@ export default class EventEmitter {
     }
   }
 
+  /**
+   * Removes a delegated event listener from a target or query.
+   * If the target is an Element, it will remove the event listener from a query
+   * by removing the data attribute with the specific id.
+   * If the target is a Window, it will remove the event listener directly.
+   *
+   * @param {Window | Document | Element | string} targetOrQuery - The target element or query
+   * @param {keyof DocumentEventMap} [eventType] - The type of event to stop listening for
+   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} [listener] - The function to remove from the event listener
+   * @returns {boolean} Returns true if the listener was removed, false otherwise
+   *
+   * @example
+   * EventEmitter.shared.removeDelegatedEvent(
+   *   document.querySelector(".my-element"),
+   *   "click",
+   *   (event) => console.log("Element clicked!", event)
+   * );
+   */
   removeDelegatedEvent(targetOrQuery, eventType, listener) {
     if (targetOrQuery instanceof Window) {
       targetOrQuery.removeEventListener(eventType, listener);
@@ -184,12 +269,11 @@ export default class EventEmitter {
   }
 
   /**
-   * Retorna el Set de listeners para un tipo de evento y un query específicos.
-   * Este método sirve como una interfaz segura para clases colaboradoras.
-   * @public
-   * @param {keyof DocumentEventMap} eventType - El tipo de evento.
-   * @param {string} query - El selector o query.
-   * @returns {Set<Function> | undefined} El conjunto de listeners o undefined si no existe.
+   * Retrieves the listeners associated with a specific event type and query.
+   *
+   * @param {keyof DocumentEventMap} eventType - The type of event to retrieve listeners for
+   * @param {string} query - The CSS query to filter the listeners
+   * @returns {Set<((event: DocumentEventMap[keyof DocumentEventMap]) => void)> | undefined} - A set of listeners for the specified event type and query, or undefined if no listeners are found
    */
   getListeners(eventType, query) {
     return this.#eventsMap.get(eventType)?.get(query);
@@ -222,14 +306,6 @@ export default class EventEmitter {
     document.removeEventListener(eventType, this.#handler);
   }
 
-  /**
-   * Extrae el id de un evento de un elemento
-   *
-   * @param {HTMLElement} target - Elemento del que se extraerá el id del evento
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento
-   *
-   * @returns {[boolean, string]} - Un arreglo con un booleano que indica si se encontró un evento coincidente y el id del evento
-   */
   #extractEventId(target, eventType) {
     const eventKey = this.#findEventDatasetKey(target, eventType);
 
@@ -250,13 +326,6 @@ export default class EventEmitter {
     });
   }
 
-  /**
-   * Elimina listeners asociados a un query.
-   *
-   * @private
-   * @param {string} query - Query CSS para identificar los listeners.
-   * @returns {boolean} Retorna true si se eliminó algún listener.
-   */
   #removeEventByQuery(query) {
     let removed = false;
     for (const [eventType, eventQueryMap] of this.#eventsMap.entries()) {
@@ -270,13 +339,6 @@ export default class EventEmitter {
     return removed;
   }
 
-  /**
-   * Elimina listeners basados en el atributo dataset de un elemento.
-   *
-   * @private
-   * @param {HTMLElement} element - Elemento HTML del cual se eliminarán listeners.
-   * @returns {boolean} Retorna true si se eliminó algún listener.
-   */
   #removeEventByDataMap(element) {
     let removed = false;
     for (const [key] of Object.entries(element.dataset)) {
@@ -298,15 +360,6 @@ export default class EventEmitter {
     return removed;
   }
 
-  /**
-   * Elimina el listener específico del mapa de eventos.
-   *
-   * @private
-   * @param {string} query - Query CSS para identificar los listeners.
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento.
-   * @param {((event: DocumentEventMap[keyof DocumentEventMap]) => void)} [listener] - Función asociada al listener.
-   * @returns {boolean} Retorna true si se eliminó el listener.
-   */
   #removeEventListener(query, eventType, listener) {
     const eventQueryMap = this.#eventsMap.get(eventType);
     const listenerSet = eventQueryMap?.get(query);
@@ -325,13 +378,6 @@ export default class EventEmitter {
     return removed;
   }
 
-  /**
-   * Elimina el tipo de evento del mapa si ya no hay más listeners asociados.
-   *
-   * @private
-   * @param {keyof DocumentEventMap} eventType - Tipo de evento.
-   * @param {Map} eventQueryMap - Mapa de queries asociados al evento.
-   */
   #cleanupEventType(eventType, eventQueryMap) {
     if (eventQueryMap && eventQueryMap.size === 0) {
       this.#removeListenerFromDocument(eventType);

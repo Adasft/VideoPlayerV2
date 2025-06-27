@@ -1,24 +1,53 @@
 export class NonDelegableEventHandler {
-  #eventEmitter;
+  /**
+   * @typedef {Object} EventDelegator
+   *
+   * Adds a delegated event listener.
+   * @property {(targetOrQuery: Document | HTMLElement | string, eventType: keyof DocumentEventMap, listener: (event: Event) => void, options?: boolean | AddEventListenerOptions) => void} addDelegatedEvent
+   *
+   * Removes a previously registered delegated event listener.
+   * @property {(targetOrQuery: Document | HTMLElement | string, eventType?: keyof DocumentEventMap, listener?: (event: Event) => void) => boolean} removeDelegatedEvent
+   *
+   * Retrieves the set of listeners for a specific event type and CSS selector query.
+   * @property {(eventType: keyof DocumentEventMap, query: string) => Set<Function> | undefined} getListeners
+   */
+  /** @type {EventDelegator} */
+  #eventDelegator;
 
   /**
-   * Lista de eventos que no se pueden delegar a través de un query y que
-   * si son posibles de delegar implementando un listener adicional
+   * List of non-delegable events.
+   * These events cannot be delegated through a query selector and require
+   * special handling.
    *
-   * @type {{[key in keyof DocumentEventMap]?: string}}
+   * @type {Object<string, string>}
    */
   #nonDelegableEvents = {
-    // Para los eventos mouseenter y mouseleave, se registra un listener adicional
-    // para el evento mouseover y mouseout esto debido a que los eventos mouseenter y
-    // mouseleave no se propagan, por lo que no se puede delegar a través de un query.
+    // For mouseenter and mouseleave events, an additional listener is registered
+    // for the mouseover and mouseout events. This is because mouseenter and
+    // mouseleave events do not bubble, so they cannot be delegated through a query.
+    // The mouseover and mouseout events are used to handle the delegation.
+    // The mouseover event is used to handle mouseenter and the mouseout event is used
+    // to handle mouseleave.
     mouseenter: "mouseover",
     mouseleave: "mouseout",
   };
 
-  constructor(eventEmitter) {
-    this.#eventEmitter = eventEmitter;
+  /**
+   * Creates an instance of NonDelegableEventHandler.
+   * @param {EventDelegator} eventDelegator - The event delegator instance to use for handling events.
+   */
+  constructor(eventDelegator) {
+    this.#eventDelegator = eventDelegator;
   }
 
+  /**
+   * Handles the non-delegable events based on the event type.
+   *
+   * @param {string} query - The CSS selector query to match the target element.
+   * @param {string} eventType - The type of event to handle (e.g., "mouseenter", "mouseleave").
+   * @param {Function} originalListener - The original event listener function to call.
+   * @returns {[Function, string]} - Returns an array containing the listener function and the event type.
+   */
   handle(query, eventType, originalListener) {
     switch (eventType) {
       case "mouseenter":
@@ -32,10 +61,22 @@ export class NonDelegableEventHandler {
     }
   }
 
+  /**
+   * Checks if the event type is a non-delegable event.
+   *
+   * @param {string} eventType - The type of event to check.
+   * @returns {boolean} - Returns true if the event type is non-delegable, false otherwise.
+   */
   has(eventType) {
     return this.#nonDelegableEvents.hasOwnProperty(eventType);
   }
 
+  /**
+   * Retrieves the non-delegable event type for a given event type.
+   *
+   * @param {string} eventType - The type of event to retrieve.
+   * @returns {string} - Returns the non-delegable event type if it exists, otherwise undefined.
+   */
   get(eventType) {
     return this.#nonDelegableEvents[eventType];
   }
@@ -49,7 +90,7 @@ export class NonDelegableEventHandler {
       // No se verifica si el mapa de eventos ya tiene el evento mouseover, debido a que si se ejecuta esta funcion
       // es porque el evento mouseenter se ha disparado, por lo que el evento mouseover ya debería estar registrado.
       // Por lo tanto esta listener jamas se ejecutará si no se ha registrado el evento mouseover.
-      const listenerSet = this.#eventEmitter.getListeners(eventType, query);
+      const listenerSet = this.#eventDelegator.getListeners(eventType, query);
 
       listenerSet.delete(listener);
 
