@@ -214,7 +214,7 @@ export class Component {
 
   destroy() {
     if (this.isConnected) {
-      this.#element.disconnect();
+      this.#element.destroy();
     }
 
     this.#parent = null;

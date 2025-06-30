@@ -77,7 +77,7 @@ export default class StepsSliderComponent extends SliderComponent {
 
   #removeSteps() {
     for (const stepElement of this.#stepElementsSet) {
-      stepElement.disconnect();
+      stepElement.destroy();
     }
 
     this.#stepElementsSet = [];

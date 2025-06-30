@@ -29,6 +29,13 @@ export class DomNode {
   isChildOf(parent) {
     return parent.contains(this.#node);
   }
+
+  clearNode() {
+    if (this.isConnected) {
+      return;
+    }
+    this.#node = null;
+  }
 }
 
 export class DomElement extends DomNode {
@@ -118,6 +125,13 @@ export class DomElement extends DomNode {
     this.node.innerHTML = html;
   }
 
+  /**
+   * Disconnects the element by removing all event listeners and detaching the node from the DOM.
+   * This prevents any further event callbacks from being triggered.
+   * Does not affect child elements or internal references.
+   *
+   * @returns {void}
+   */
   disconnect() {
     // Eliminamos todos los eventos relacionados con el elemento
     // para evitar que se ejecuten callbacks innecesariamente.
@@ -126,24 +140,46 @@ export class DomElement extends DomNode {
     if (this.isConnected) {
       this.node.remove();
     }
-
-    for (const child of this.#children) {
-      child.disconnect();
-    }
-
-    this.#children.clear();
   }
 
-  remove() {
-    this.off();
+  /**
+   * Fully destroys the element and its children.
+   * Performs a complete cleanup by:
+   * - Disconnecting event listeners and removing the element from the DOM
+   * - Recursively destroying child elements
+   * - Clearing internal caches and references to allow garbage collection
+   * - Invoking `clearNode()` to clean up any additional internal state
+   *
+   * @returns {void}
+   */
+  destroy() {
+    this.disconnect();
 
-    if (this.isConnected) {
-      this.node.remove();
+    for (const child of this.#children) {
+      child.destroy();
     }
+
+    this.clearNode();
+  }
+
+  /**
+   * Removes the element from the DOM and recursively removes its children.
+   * Calls `disconnect()` internally to handle event cleanup and node removal.
+   *
+   * @returns {void}
+   */
+  remove() {
+    this.disconnect();
 
     for (const child of this.#children) {
       child.remove();
     }
+  }
+
+  clearNode() {
+    super.clearNode();
+    this.#children.clear();
+    this.#cacheBounds = null;
   }
 
   #configAttributes(attributes) {
@@ -201,7 +237,7 @@ export class DomText extends DomNode {
     return this.node.textContent;
   }
 
-  disconnect() {
+  destroy() {
     this.node.remove();
   }
 }

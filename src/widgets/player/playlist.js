@@ -34,7 +34,13 @@ export default class PlayList {
   #loop;
   #isShuffleActive = false;
 
-  constructor({ title = "", player, sources, startIndex = 0, loop = false }) {
+  constructor({
+    title = "Playlist",
+    player,
+    sources,
+    startIndex = 0,
+    loop = false,
+  }) {
     this.#title = title;
     this.#player = player;
     this.#sources = this.#mapSourceByIndex(sources);
@@ -101,6 +107,7 @@ export default class PlayList {
   get data() {
     return {
       sources: this.#sources,
+      title: this.#title,
       currentIndex: this.#currentIndex,
       size: this.size,
       currentSource: this.currentSource,

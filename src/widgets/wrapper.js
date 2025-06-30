@@ -50,9 +50,14 @@ export class Wrapper {
     return this;
   }
 
-  text(text) {
-    const textNode = Dom.text(text);
-    this.#element.append(textNode);
+  text(...text) {
+    const nodes = text.map((t) => Dom.text(t));
+    this.#element.append(nodes);
+    return this;
+  }
+
+  innerText(text) {
+    this.#element.node.innerText = text;
     return this;
   }
 

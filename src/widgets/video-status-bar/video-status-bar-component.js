@@ -65,15 +65,17 @@ export default class VideoStatusBarComponent extends Component {
 
   #createVideoStatusControlsWrapper() {
     const { buttons } = this.videoStatusBar.controls;
-    return this.wrapper("div", "video-status-controls-wrapper")
-      .add(buttons.chapters?.component)
-      .add(buttons.playlist?.component)
-      .add(buttons.shuffle.component)
-      .add(buttons.repeat.component)
-      .add(buttons.speed.component)
-      .add(buttons.pictureInPicture.component)
-      .add(buttons.fullscreen.component)
-      .toRef(this.#refs.videoStatusControlsWrapper);
+    return (
+      this.wrapper("div", "video-status-controls-wrapper")
+        .add(buttons.chapters?.component)
+        .add(buttons.playlist?.component)
+        // .add(buttons.shuffle.component)
+        .add(buttons.repeat.component)
+        .add(buttons.speed.component)
+        .add(buttons.pictureInPicture.component)
+        .add(buttons.fullscreen.component)
+        .toRef(this.#refs.videoStatusControlsWrapper)
+    );
   }
 
   #createVideoStatusWrapper() {

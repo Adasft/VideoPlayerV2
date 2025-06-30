@@ -39,6 +39,8 @@ export default class PlayerControls {
       prev: { icon: SVGIcons.BACKWARD },
       next: { icon: SVGIcons.FORWARD },
       playlist: { icon: SVGIcons.PLAYLIST },
+      shuffle: { icon: SVGIcons.SHUFFLE },
+      loop: { icon: SVGIcons.REPEAT },
     });
   }
 
@@ -75,7 +77,8 @@ export default class PlayerControls {
       reload: { icon: SVGIcons.RELOAD },
       volume: { icon: SVGIcons.VOLUME_HIGH },
       repeat: { icon: SVGIcons.REPEAT },
-      shuffle: { icon: SVGIcons.SHUFFLE },
+      // TODO: Remove shuffle button
+      // shuffle: { icon: SVGIcons.SHUFFLE },
       fullscreen: { icon: SVGIcons.FULLSCREEN },
       skipBack: { icon: this.#getSkipTimeIcon(skipTime, "BACK") },
       skipForward: { icon: this.#getSkipTimeIcon(skipTime, "FORWARD") },

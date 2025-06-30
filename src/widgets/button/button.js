@@ -15,7 +15,9 @@ export default class Button extends Widget {
   constructor({ icon }) {
     super();
     if (!(icon instanceof SVGIcon)) {
-      throw new Error("Invalid icon type, must be an instance of SVGIcon");
+      throw new Error(
+        "Button: Invalid icon type, must be an instance of SVGIcon"
+      );
     }
     this.#icon = icon;
   }

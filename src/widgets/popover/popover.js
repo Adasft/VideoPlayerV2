@@ -5,7 +5,6 @@ export default class Popover extends Widget {
   #delay;
   #placement;
   #offset;
-  #arrowAlign;
 
   #isOpen = false;
 
