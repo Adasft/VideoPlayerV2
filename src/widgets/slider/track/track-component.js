@@ -53,7 +53,7 @@ export class SliderTrackComponent extends Component {
       wrapper.add(new SliderProgressBarComponent(bar));
     }
 
-    return wrapper.element;
+    return wrapper;
   }
 
   #setHoverPadding() {

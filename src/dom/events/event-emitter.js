@@ -279,7 +279,7 @@ export default class EventEmitter {
     return this.#eventsMap.get(eventType)?.get(query);
   }
 
-  #handler = (event) => {
+  #eventDispatcher = (event) => {
     const target =
       event.target instanceof Document
         ? event.target.documentElement
@@ -299,11 +299,11 @@ export default class EventEmitter {
   };
 
   #addListenerToDocument(eventType, options) {
-    document.addEventListener(eventType, this.#handler, options);
+    document.addEventListener(eventType, this.#eventDispatcher, options);
   }
 
   #removeListenerFromDocument(eventType) {
-    document.removeEventListener(eventType, this.#handler);
+    document.removeEventListener(eventType, this.#eventDispatcher);
   }
 
   #extractEventId(target, eventType) {

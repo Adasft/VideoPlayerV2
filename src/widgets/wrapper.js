@@ -1,24 +1,17 @@
 import { Dom } from "../dom/dom-utils.js";
+import { DomElement } from "../dom/element.js";
 import { Component } from "./component.js";
 
-export class Wrapper {
-  #element;
+export class Wrapper extends DomElement {
   #parentComponent;
 
   constructor(tagName, className, parentComponent) {
-    this.#element = Dom.elm(tagName, {
-      class: className,
-    });
-
+    super(tagName, { class: className });
     this.#parentComponent = parentComponent;
   }
 
   get element() {
-    return this.#element;
-  }
-
-  get isConnected() {
-    return this.#element.isConnected;
+    return this.node;
   }
 
   get parentComponent() {
@@ -32,7 +25,7 @@ export class Wrapper {
    * @return {Wrapper} The wrapper instance.
    */
   add(child) {
-    return this.#insertChildToParent(child, Dom.append);
+    return this.#insertChildAtPosition("append", child);
   }
 
   /**
@@ -41,8 +34,8 @@ export class Wrapper {
    * @param {Component | Wrapper} child - The child to prepend.
    * @return {Wrapper} The wrapper instance.
    */
-  prepend(child) {
-    return this.#insertChildToParent(child, Dom.prepend);
+  addFirst(child) {
+    return this.#insertChildAtPosition("prepend", child);
   }
 
   toRef(ref) {
@@ -52,32 +45,32 @@ export class Wrapper {
 
   text(...text) {
     const nodes = text.map((t) => Dom.text(t));
-    this.#element.append(nodes);
-    return this;
-  }
-
-  innerText(text) {
-    this.#element.node.innerText = text;
+    this.append(nodes);
     return this;
   }
 
   class(...classList) {
-    this.#element.addClass(classList);
+    this.addClass(classList);
     return this;
   }
 
-  #insertChildToParent(child, insertMethod) {
+  #shouldInsertChild(child) {
     if (!child || child.isConnected) {
-      return this;
+      return false;
     }
 
-    if (child instanceof Component) {
-      // console.log("SI", child);
-      child.insertTo(this, insertMethod === Dom.append ? "append" : "prepend");
-    } else {
-      insertMethod(this.#element.node, child.#element.node);
-    }
+    return true;
+  }
 
+  #insertChildAtPosition(position, child) {
+    const shouldInsert = this.#shouldInsertChild(child);
+    const isComponent = child instanceof Component;
+    if (shouldInsert) {
+      this[position]([child]); // "append" or "prepend"
+      if (isComponent) {
+        child.attachToComponent(this.#parentComponent);
+      }
+    }
     return this;
   }
 }

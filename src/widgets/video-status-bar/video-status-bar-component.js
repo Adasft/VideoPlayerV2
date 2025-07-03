@@ -16,10 +16,10 @@ export default class VideoStatusBarComponent extends Component {
   onRefresh() {
     const { buttons } = this.videoStatusBar.controls;
 
-    this.#refs.videoTitleWrapper.current.prepend(
+    this.#refs.videoTitleWrapper.current.addFirst(
       this.#prepareChapterTitleForInsertion()
     );
-    this.#refs.videoStatusControlsWrapper.current.prepend(
+    this.#refs.videoStatusControlsWrapper.current.addFirst(
       buttons.chapters?.component
     );
   }

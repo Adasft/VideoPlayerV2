@@ -62,6 +62,10 @@ export class DomElement extends DomNode {
     return EventEmitter.shared.off.bindTarget(this.node);
   }
 
+  get firstChild() {
+    return this.#children.values().next().value ?? null;
+  }
+
   /**
    * Appends children to the DOM element.
    *
@@ -238,6 +242,11 @@ export class DomText extends DomNode {
   }
 
   destroy() {
+    this.node.remove();
+    this.clearNode();
+  }
+
+  remove() {
     this.node.remove();
   }
 }

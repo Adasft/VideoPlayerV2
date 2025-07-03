@@ -142,6 +142,11 @@ export class Component {
     this.#element = element;
 
     widget.on("destroy", () => this.destroy());
+
+    console.debug(
+      `Component: Created component for widget "${widget.name}" with ID "${this.id}".`,
+      { onMounted: this.onMounted, onAppended: this.onAppended }
+    );
   }
 
   get element() {
@@ -173,6 +178,12 @@ export class Component {
   }
 
   set parent(parent) {
+    if (!(parent instanceof Component)) {
+      throw new Error(
+        "Component.parent: Parent must be an instance of Component."
+      );
+    }
+
     this.#parent = parent;
   }
 
@@ -227,46 +238,28 @@ export class Component {
    * @param {...Component} children - The children to append.
    */
   append(...children) {
-    this.#element.append(children, (child) => {
-      if (child.onAppended) {
-        registerLifecycleEvent(LCEvents.APPENDED, child);
-      }
-      this.#attachChild(child, this);
-    });
+    this.#element.append(children, (child) => child.attachToComponent(this));
   }
 
-  /**
-   * Appends the component to the specified parent.
-   *
-   * @param {Component | Wrapper} parent - The parent element or wrapper to append the component to.
-   */
-  insertTo(parent, insertMethod) {
-    const parentElement = parent.element;
-    const parentComponent =
-      parent instanceof Component ? parent : parent.parentComponent;
-
-    if (insertMethod === "append") {
-      parentElement.append([this.element]);
-    } else if (insertMethod === "prepend") {
-      parentElement.prepend([this.element]);
-    }
-
+  attachToComponent(parentComponent) {
     if (this.onAppended) {
       registerLifecycleEvent(LCEvents.APPENDED, this);
     }
 
+    this.parent = parentComponent;
+
     this.#attachChild(this, parentComponent);
   }
 
-  appendWrapper(...wrapper) {
-    const wrapperElements = wrapper.map((wrapper) => wrapper.element);
-    this.element.append(wrapperElements);
+  appendWrapper(...wrappers) {
+    this.#element.append(wrappers);
   }
 
   /**
    * Mounts the component to the DOM.
    *
    * @param {Element} parent - The parent element to mount the component to.
+   * @throws {Error} If the parent element is not provided or not connected.
    */
   mount(parent) {
     if (!parent) {
@@ -309,8 +302,6 @@ export class Component {
   }
 
   #attachChild(child, parentComponent) {
-    child.parent = parentComponent;
-
     triggerLifecycleEvent(LCEvents.APPENDED, parentComponent.node, child);
 
     if (child.onMounted) {
