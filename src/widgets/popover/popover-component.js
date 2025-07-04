@@ -122,12 +122,15 @@ export default class PopoverComponent extends Component {
     this.popover.target.component.resetBounds();
   };
 
-  onMounted() {
+  onMounted(event) {
+    event.preventDispose();
+    console.log("PopoverComponent mounted");
     Dom.on(document, "click", this.outsideClickHandler);
     Dom.on(window, "resize", this.windowResizeHandler);
   }
 
-  onDismount() {
+  onDismount(event) {
+    event.preventDispose();
     Dom.off(document, "click", this.outsideClickHandler);
     Dom.off(window, "resize", this.windowResizeHandler);
     this.popover.target.component.resetBounds();

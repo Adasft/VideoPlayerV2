@@ -9,6 +9,10 @@ const LCEvents = {
    * @type {"onMounted"}
    */
   MOUNTED: "onMounted",
+  /**
+   * Lifecycle that triggers when the component is dismounted from the DOM.
+   * @type {"onDismount"}
+   */
   DISMOUNT: "onDismount",
   /**
    * Lifecycle that triggers when the component is appended to the parent element.
@@ -19,10 +23,15 @@ const LCEvents = {
 
 const lifecycleManager = {
   /**
-   * @type {Map<"onMounted" | "onAppended", Set<Component>> | null}
+   * @type {Map<LCEvents[keyof LCEvents], Set<Component>> | null}
    */
   stateMap: null,
 
+  /**
+   * Retrieves the current state map of components.
+   * If the state map does not exist, it initializes a new one.
+   * @returns {Map<LCEvents[keyof LCEvents], Set<Component>>}
+   */
   getStates() {
     if (!this.stateMap) {
       this.stateMap = new Map();
@@ -30,66 +39,125 @@ const lifecycleManager = {
     return this.stateMap;
   },
 
+  /**
+   * Deletes a component from the lifecycle manager.
+   * @param {Component} item - The component to delete.
+   */
+  delete(item) {
+    if (!this.stateMap) return;
+
+    for (const [key, componentsSet] of this.stateMap.entries()) {
+      if (componentsSet.has(item)) {
+        componentsSet.delete(item);
+        if (componentsSet.size === 0) {
+          this.stateMap.delete(key);
+        }
+      }
+    }
+
+    if (this.stateMap.size === 0) {
+      this.clear();
+    }
+  },
+
+  /**
+   * Clears the lifecycle manager's state map.
+   */
   clear() {
     this.stateMap = null;
   },
 };
 
-function triggerStates(eventName, componentsSet, parentElement) {
-  const invokeMethod = (component) => {
-    const method = component[eventName];
-    if (!method) return;
-    method.call(component);
-    componentsSet.delete(component);
+/**
+ * Invokes a method on a component and handles the event propagation.
+ * @param {LCEvents[keyof LCEvents]} name - The name of the method to invoke.
+ * @param {Component} component - The component on which to invoke the method.
+ * @param {Set<Component>} componentsSet - The set of components to manage lifecycle events.
+ * @returns {boolean} - Returns true if the component should be preserved, false otherwise.
+ */
+function invokeMethod(name, component, componentsSet) {
+  const method = component[name];
+  if (!method) return;
+
+  let shouldDispose = true;
+  const event = {
+    type: name,
+    target: component,
+    preventDispose: () => {
+      shouldDispose = false;
+    },
   };
 
-  for (const component of [...componentsSet]) {
-    if (parentElement) {
-      if (component.element?.isChildOf(parentElement)) {
-        invokeMethod(component);
-        continue;
-      }
-    } else {
-      invokeMethod(component);
+  method.call(component, event);
+
+  if (shouldDispose) {
+    componentsSet.delete(component);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Triggers an event with propagation to child components.
+ * @param {LCEvents[keyof LCEvents]} eventName - The name of the event to trigger.
+ * @param {Component} rootComponent - The root component that initiates the event.
+ * @param {Set<Component>} componentsSet - The set of components to manage lifecycle events.
+ */
+function triggerEventWithPropagation(eventName, rootComponent, componentsSet) {
+  const wasPreserved = invokeMethod(eventName, rootComponent, componentsSet);
+
+  const remainingComponents = wasPreserved
+    ? [...componentsSet].filter((c) => c !== rootComponent)
+    : [...componentsSet];
+
+  for (const component of remainingComponents) {
+    const element = component.element;
+    if (!element?.isChildOf(rootComponent.element)) {
+      continue;
     }
+    invokeMethod(eventName, component, componentsSet);
   }
 }
 
-function triggerAppendedState(componentsSet, component) {
+/**
+ * Triggers an event without propagation to child components.
+ * @param {LCEvents[keyof LCEvents]} eventName - The name of the event to trigger.
+ * @param {Component} component - The component to trigger the event for.
+ * @param {Set<Component>} componentsSet - The set of components to manage lifecycle events.
+ */
+function triggerEventWithoutPropagation(eventName, component, componentsSet) {
   if (!componentsSet.has(component)) {
     return;
   }
 
-  component.onAppended();
-  componentsSet.delete(component);
+  invokeMethod(eventName, component, componentsSet);
 }
 
 /**
  * Triggers the lifecycle state of a component.
  *
- * @param {Element} parent - The parent element to trigger the lifecycle state on.
- * @param {"onMounted" | "onAppended"} state - The lifecycle state to trigger.
+ * @param {LCEvents[keyof LCEvents]} eventName - The name of the lifecycle event to trigger.
+ * @param {Component} component - The component to trigger the event for.
  */
-function triggerLifecycleEvent(eventName, parentElement, component) {
+function triggerLifecycleEvent(eventName, component) {
   const states = lifecycleManager.getStates();
   const componentsSet = states.get(eventName);
-
-  // console.log(eventName, componentsSet, component);
 
   if (!componentsSet) return;
 
   switch (eventName) {
     case LCEvents.MOUNTED:
     case LCEvents.DISMOUNT:
-      triggerStates(eventName, componentsSet, parentElement);
-      if (componentsSet.size === 0) {
-        states.delete(eventName);
-      }
+      triggerEventWithPropagation(eventName, component, componentsSet);
       break;
-
     case LCEvents.APPENDED:
-      triggerAppendedState(componentsSet, component);
+      triggerEventWithoutPropagation(eventName, component, componentsSet);
       break;
+  }
+
+  if (componentsSet.size === 0) {
+    states.delete(eventName);
   }
 
   if (states.size === 0) {
@@ -97,6 +165,11 @@ function triggerLifecycleEvent(eventName, parentElement, component) {
   }
 }
 
+/**
+ * Registers a component for a specific lifecycle event.
+ * @param {LCEvents[keyof LCEvents]} eventName - The name of the lifecycle event.
+ * @param {Component} component - The component to register for the event.
+ */
 function registerLifecycleEvent(eventName, component) {
   const states = lifecycleManager.getStates();
   if (!states.has(eventName)) {
@@ -124,13 +197,13 @@ export class Component {
     widget.component = this;
 
     this.id = `${widget.name}-${getRandomId()}`;
-
+    this.widgetName = widget.name ?? "widget";
     // Se define el nombre de la propiedad con la cual se podrá acceder al widget
     // de la instancia de la clase. Por ejemplo, si el nombre del widget es Player,
     // el nombre de la propiedad será "player". Y su acceso será `this.player`.
     // En caso existir un error al obtener el nombre del widget, se utilizará el
     // nombre "widget" como nombre de la propiedad.
-    Object.defineProperty(this, widget.name ?? "widget", {
+    Object.defineProperty(this, this.widgetName, {
       get: () => widget,
     });
 
@@ -143,10 +216,7 @@ export class Component {
 
     widget.on("destroy", () => this.destroy());
 
-    console.debug(
-      `Component: Created component for widget "${widget.name}" with ID "${this.id}".`,
-      { onMounted: this.onMounted, onAppended: this.onAppended }
-    );
+    this.#attachLifecycleMethods();
   }
 
   get element() {
@@ -191,6 +261,7 @@ export class Component {
    * Create the component's DOM element.
    *
    * @abstract
+   * @throws {Error} If not implemented in a subclass.
    * @returns {HTMLElement}
    */
   createElement() {
@@ -228,8 +299,12 @@ export class Component {
       this.#element.destroy();
     }
 
+    this.id = null;
     this.#parent = null;
     this.#element = null;
+    this[this.widgetName] = null;
+
+    lifecycleManager.delete(this);
   }
 
   /**
@@ -241,18 +316,20 @@ export class Component {
     this.#element.append(children, (child) => child.attachToComponent(this));
   }
 
+  appendWrapper(...wrappers) {
+    this.#element.append(wrappers);
+  }
+
   attachToComponent(parentComponent) {
-    if (this.onAppended) {
-      registerLifecycleEvent(LCEvents.APPENDED, this);
+    if (!(parentComponent instanceof Component)) {
+      throw new Error(
+        "Component.attachToComponent() must be called with a parent Component."
+      );
     }
 
     this.parent = parentComponent;
 
     this.#attachChild(this, parentComponent);
-  }
-
-  appendWrapper(...wrappers) {
-    this.#element.append(wrappers);
   }
 
   /**
@@ -274,23 +351,14 @@ export class Component {
       );
     }
 
-    if (this.onMounted) {
-      registerLifecycleEvent(LCEvents.MOUNTED, this);
-    }
-
     Dom.append(parent, this.node);
 
-    triggerLifecycleEvent(LCEvents.MOUNTED, parent, this);
+    triggerLifecycleEvent(LCEvents.MOUNTED, this);
   }
 
   dismount() {
-    if (this.onDismount) {
-      registerLifecycleEvent(LCEvents.DISMOUNT, this);
-    }
-
     this.#element.remove();
-
-    triggerLifecycleEvent(LCEvents.DISMOUNT, null, this);
+    triggerLifecycleEvent(LCEvents.DISMOUNT, this);
   }
 
   createRef() {
@@ -301,19 +369,27 @@ export class Component {
     return new Wrapper(tagName, className, this);
   }
 
-  #attachChild(child, parentComponent) {
-    triggerLifecycleEvent(LCEvents.APPENDED, parentComponent.node, child);
-
-    if (child.onMounted) {
-      registerLifecycleEvent(LCEvents.MOUNTED, child);
-
-      if (parentComponent.isConnected) {
-        triggerLifecycleEvent(LCEvents.MOUNTED, parentComponent.node, child);
-      }
+  #attachLifecycleMethods() {
+    if (this.onAppended) {
+      registerLifecycleEvent(LCEvents.APPENDED, this);
     }
 
-    if (child.onDismount) {
-      registerLifecycleEvent(LCEvents.DISMOUNT, child);
+    if (this.onMounted) {
+      registerLifecycleEvent(LCEvents.MOUNTED, this);
+    }
+
+    if (this.onDismount) {
+      registerLifecycleEvent(LCEvents.DISMOUNT, this);
+    }
+  }
+
+  #attachChild(child, parentComponent) {
+    if (child.element.isChildOf(parentComponent.element)) {
+      triggerLifecycleEvent(LCEvents.APPENDED, child);
+    }
+
+    if (parentComponent.isConnected) {
+      triggerLifecycleEvent(LCEvents.MOUNTED, child);
     }
   }
 }
