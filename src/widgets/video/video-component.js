@@ -4,7 +4,6 @@ import { Dom } from "../../dom/dom-utils.js";
 export default class VideoComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
   }
 
   play() {
@@ -125,7 +124,7 @@ export default class VideoComponent extends Component {
     this.video.emit("ended");
   }
 
-  #init() {
+  onCreate() {
     const { video } = this;
     // Eventos del controlador
     video.on("refresh", this.onRefresh.bind(this));

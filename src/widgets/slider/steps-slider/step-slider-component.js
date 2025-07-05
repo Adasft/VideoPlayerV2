@@ -7,7 +7,6 @@ export default class StepsSliderComponent extends SliderComponent {
 
   constructor(widget) {
     super(widget);
-    this.#init();
   }
 
   onValueChanged(step) {
@@ -40,7 +39,7 @@ export default class StepsSliderComponent extends SliderComponent {
     this.#createStepsLabels();
   }
 
-  #init() {
+  onCreate() {
     this.element.addClass("steps-slider");
 
     this.#createSteps();

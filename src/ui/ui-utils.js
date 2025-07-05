@@ -1,4 +1,10 @@
+import { triggerLifecycleEvent, LCEvents } from "../widgets/component.js";
+
 const widgetPaths = {
+  player: {
+    widget: "../widgets/player/player.js",
+    component: "../widgets/player/player-component.js",
+  },
   loader: {
     widget: "../widgets/loader/loader.js",
     component: "../widgets/loader/loader-component.js",
@@ -61,7 +67,13 @@ async function createWidget(paths, options) {
   const widget = new Widget.default(options);
   new WidgetComponent.default(widget);
 
+  triggerLifecycleEvent(LCEvents.CREATE, widget.component);
+
   return widget;
+}
+
+export function createPlayer(options) {
+  return createWidget(widgetPaths.player, options);
 }
 
 /**

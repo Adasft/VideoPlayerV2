@@ -1,4 +1,7 @@
-import { Component } from "../../component.js";
+import {
+  Component,
+  createComponentThroughCreationLifecycle,
+} from "../../component.js";
 import { Dom } from "../../../dom/dom-utils.js";
 import { SliderThumbComponent } from "./thumb-component.js";
 import { SliderTrackComponent } from "../track/track-component.js";
@@ -31,8 +34,6 @@ export default class SliderComponent extends Component {
       this.#resetBounds.bind(this),
       1000
     );
-
-    this.#init();
   }
 
   createElement() {
@@ -150,7 +151,7 @@ export default class SliderComponent extends Component {
     this.slider.initializeValue();
   }
 
-  #init() {
+  onCreate() {
     const { slider } = this;
 
     this.#setupSliderComponents();
@@ -170,14 +171,21 @@ export default class SliderComponent extends Component {
   }
 
   #setupSliderComponents() {
-    this.append(new SliderThumbComponent(this.slider.thumb));
+    this.append(
+      createComponentThroughCreationLifecycle(
+        SliderThumbComponent,
+        this.slider.thumb
+      )
+    );
     this.#appendTracks();
   }
 
   #appendTracks() {
     const { tracks } = this.slider;
     for (const track of tracks) {
-      this.append(new SliderTrackComponent(track));
+      this.append(
+        createComponentThroughCreationLifecycle(SliderTrackComponent, track)
+      );
     }
   }
 

@@ -81,6 +81,7 @@ export class Widget {
    */
   destroy() {
     this.#eventBus.emit("destroy");
+    // this.#component = null;
   }
 
   /**

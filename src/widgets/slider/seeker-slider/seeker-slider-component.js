@@ -3,7 +3,6 @@ import SliderComponent from "../common/slider-component.js";
 export default class SeekerSliderComponent extends SliderComponent {
   constructor(widget) {
     super(widget);
-    this.#init();
   }
 
   disableHoverEffects(canUnbindGlobalEvents = true) {
@@ -33,7 +32,8 @@ export default class SeekerSliderComponent extends SliderComponent {
     this.#resetIndicatorTrackBars();
   }
 
-  #init() {
+  onCreate() {
+    super.onCreate();
     this.#toggleChaptersClass();
     this.slider.on("trackChanged", this.onTrackChanged.bind(this));
   }

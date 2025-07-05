@@ -8,7 +8,7 @@
 import * as ui from "./ui/ui-utils.js";
 import { Controls } from "./ui/controls.js";
 import SVGIcons from "./ui/icons.js";
-import Player, { createPlayer } from "./widgets/player/player.js";
+import Player, { create } from "./widgets/player/player.js";
 import PlayerComponent from "./widgets/player/player-component.js";
 
 // const video = document.getElementById("video");
@@ -78,7 +78,7 @@ import PlayerComponent from "./widgets/player/player-component.js";
 
 // window.controls = controls;
 
-const player = createPlayer({
+const player = await create({
   source: {
     src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     title: "Este es un video con un titulo",

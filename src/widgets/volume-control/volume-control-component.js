@@ -8,7 +8,6 @@ export default class VolumeControlsComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    this.#init();
   }
 
   createElement() {
@@ -17,7 +16,7 @@ export default class VolumeControlsComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     const { controls } = this.volumeControl;
     this.addClass("show");
 

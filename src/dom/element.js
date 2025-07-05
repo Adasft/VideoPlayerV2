@@ -27,7 +27,7 @@ export class DomNode {
   }
 
   isChildOf(parent) {
-    return parent.contains(this.#node);
+    return parent.node.contains(this.#node);
   }
 
   clearNode() {
@@ -60,6 +60,14 @@ export class DomElement extends DomNode {
 
   get off() {
     return EventEmitter.shared.off.bindTarget(this.node);
+  }
+
+  get firstChild() {
+    return this.#children.values().next().value ?? null;
+  }
+
+  get children() {
+    return this.#children;
   }
 
   /**
@@ -238,6 +246,11 @@ export class DomText extends DomNode {
   }
 
   destroy() {
+    this.node.remove();
+    this.clearNode();
+  }
+
+  remove() {
     this.node.remove();
   }
 }

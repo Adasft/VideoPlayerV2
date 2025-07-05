@@ -4,7 +4,6 @@ import { Component } from "../component.js";
 export default class ButtonComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
   }
 
   createElement() {
@@ -48,7 +47,7 @@ export default class ButtonComponent extends Component {
     this.on("click", this.onClick);
   }
 
-  #init() {
+  onCreate() {
     const { button } = this;
 
     if (button.hasIcon) {
