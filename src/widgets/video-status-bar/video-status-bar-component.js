@@ -13,7 +13,6 @@ export default class VideoStatusBarComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   onRefresh() {

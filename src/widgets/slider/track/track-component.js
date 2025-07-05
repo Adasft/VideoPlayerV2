@@ -8,7 +8,6 @@ import { SliderProgressBarComponent } from "../common/progress-bar-component.js"
 export class SliderTrackComponent extends Component {
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   onMouseEnter() {

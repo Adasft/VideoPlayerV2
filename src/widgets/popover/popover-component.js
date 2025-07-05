@@ -52,7 +52,6 @@ const HORIZONTAL_PLACEMENT = Symbol();
 export default class PopoverComponent extends Component {
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   get #placementAxis() {

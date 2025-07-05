@@ -7,7 +7,6 @@ export default class PlaylistPopoverComponent extends PopoverComponent {
   };
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   onCreate() {

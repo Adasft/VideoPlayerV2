@@ -8,7 +8,6 @@ export default class VolumeControlsComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   createElement() {

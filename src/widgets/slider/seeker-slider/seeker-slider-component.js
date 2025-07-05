@@ -3,7 +3,6 @@ import SliderComponent from "../common/slider-component.js";
 export default class SeekerSliderComponent extends SliderComponent {
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   disableHoverEffects(canUnbindGlobalEvents = true) {

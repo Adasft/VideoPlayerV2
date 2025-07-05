@@ -4,7 +4,6 @@ import { Dom } from "../../dom/dom-utils.js";
 export default class VideoComponent extends Component {
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   play() {

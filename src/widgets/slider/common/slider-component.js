@@ -34,8 +34,6 @@ export default class SliderComponent extends Component {
       this.#resetBounds.bind(this),
       1000
     );
-
-    // this.#init();
   }
 
   createElement() {

@@ -11,7 +11,6 @@ export default class TextViewComponent extends Component {
    */
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   createElement() {

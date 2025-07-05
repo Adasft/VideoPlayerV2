@@ -8,7 +8,6 @@ export default class PlaybackControlsComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   createElement() {

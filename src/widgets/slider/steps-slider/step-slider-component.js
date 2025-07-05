@@ -7,7 +7,6 @@ export default class StepsSliderComponent extends SliderComponent {
 
   constructor(widget) {
     super(widget);
-    // this.#init();
   }
 
   onValueChanged(step) {
