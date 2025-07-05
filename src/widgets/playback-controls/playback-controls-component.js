@@ -8,7 +8,7 @@ export default class PlaybackControlsComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -17,7 +17,7 @@ export default class PlaybackControlsComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     const { buttons } = this.playbackControls.controls;
 
     this.append(buttons.skipBack.component);

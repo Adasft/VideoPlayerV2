@@ -3,7 +3,12 @@ import { Wrapper } from "./wrapper.js";
 import { Dom } from "../dom/dom-utils.js";
 import { getRandomId } from "../utils.js";
 
-const LCEvents = {
+export const LCEvents = {
+  /**
+   * Lifecycle that triggers when the component is created.
+   * @type {"onCreate"}
+   */
+  CREATE: "onCreate",
   /**
    * Lifecycle that triggers when the component is mounted to the DOM.
    * @type {"onMounted"}
@@ -21,7 +26,7 @@ const LCEvents = {
   APPENDED: "onAppended",
 };
 
-const lifecycleManager = {
+const LifecycleManager = {
   /**
    * @type {Map<LCEvents[keyof LCEvents], Set<Component>> | null}
    */
@@ -75,8 +80,9 @@ const lifecycleManager = {
  * @param {Set<Component>} componentsSet - The set of components to manage lifecycle events.
  * @returns {boolean} - Returns true if the component should be preserved, false otherwise.
  */
-function invokeMethod(name, component, componentsSet) {
+function dispatchComponentEvent(name, component, componentsSet) {
   const method = component[name];
+  // console.log(method);
   if (!method) return;
 
   let shouldDispose = true;
@@ -105,7 +111,11 @@ function invokeMethod(name, component, componentsSet) {
  * @param {Set<Component>} componentsSet - The set of components to manage lifecycle events.
  */
 function triggerEventWithPropagation(eventName, rootComponent, componentsSet) {
-  const wasPreserved = invokeMethod(eventName, rootComponent, componentsSet);
+  const wasPreserved = dispatchComponentEvent(
+    eventName,
+    rootComponent,
+    componentsSet
+  );
 
   const remainingComponents = wasPreserved
     ? [...componentsSet].filter((c) => c !== rootComponent)
@@ -116,7 +126,7 @@ function triggerEventWithPropagation(eventName, rootComponent, componentsSet) {
     if (!element?.isChildOf(rootComponent.element)) {
       continue;
     }
-    invokeMethod(eventName, component, componentsSet);
+    dispatchComponentEvent(eventName, component, componentsSet);
   }
 }
 
@@ -128,10 +138,12 @@ function triggerEventWithPropagation(eventName, rootComponent, componentsSet) {
  */
 function triggerEventWithoutPropagation(eventName, component, componentsSet) {
   if (!componentsSet.has(component)) {
+    console.log("removed: ", component);
     return;
   }
+  console.log("add: ", component);
 
-  invokeMethod(eventName, component, componentsSet);
+  dispatchComponentEvent(eventName, component, componentsSet);
 }
 
 /**
@@ -140,8 +152,8 @@ function triggerEventWithoutPropagation(eventName, component, componentsSet) {
  * @param {LCEvents[keyof LCEvents]} eventName - The name of the lifecycle event to trigger.
  * @param {Component} component - The component to trigger the event for.
  */
-function triggerLifecycleEvent(eventName, component) {
-  const states = lifecycleManager.getStates();
+export function triggerLifecycleEvent(eventName, component) {
+  const states = LifecycleManager.getStates();
   const componentsSet = states.get(eventName);
 
   if (!componentsSet) return;
@@ -151,6 +163,7 @@ function triggerLifecycleEvent(eventName, component) {
     case LCEvents.DISMOUNT:
       triggerEventWithPropagation(eventName, component, componentsSet);
       break;
+    case LCEvents.CREATE:
     case LCEvents.APPENDED:
       triggerEventWithoutPropagation(eventName, component, componentsSet);
       break;
@@ -161,8 +174,14 @@ function triggerLifecycleEvent(eventName, component) {
   }
 
   if (states.size === 0) {
-    lifecycleManager.clear();
+    LifecycleManager.clear();
   }
+}
+
+export function createComponentThroughCreationLifecycle(CtorComponent, widget) {
+  const component = new CtorComponent(widget);
+  triggerLifecycleEvent(LCEvents.CREATE, component);
+  return component;
 }
 
 /**
@@ -170,8 +189,8 @@ function triggerLifecycleEvent(eventName, component) {
  * @param {LCEvents[keyof LCEvents]} eventName - The name of the lifecycle event.
  * @param {Component} component - The component to register for the event.
  */
-function registerLifecycleEvent(eventName, component) {
-  const states = lifecycleManager.getStates();
+export function registerLifecycleEvent(eventName, component) {
+  const states = LifecycleManager.getStates();
   if (!states.has(eventName)) {
     states.set(eventName, new Set());
   }
@@ -198,11 +217,10 @@ export class Component {
 
     this.id = `${widget.name}-${getRandomId()}`;
     this.widgetName = widget.name ?? "widget";
-    // Se define el nombre de la propiedad con la cual se podrá acceder al widget
-    // de la instancia de la clase. Por ejemplo, si el nombre del widget es Player,
-    // el nombre de la propiedad será "player". Y su acceso será `this.player`.
-    // En caso existir un error al obtener el nombre del widget, se utilizará el
-    // nombre "widget" como nombre de la propiedad.
+    // Defines the property name used to access the widget from the class instance.
+    // For example, if the widget name is Player, the property name will be "player",
+    // and it can be accessed as `this.player`.
+    // If there is an error obtaining the widget name, "widget" will be used as the property name.
     Object.defineProperty(this, this.widgetName, {
       get: () => widget,
     });
@@ -302,9 +320,9 @@ export class Component {
     this.id = null;
     this.#parent = null;
     this.#element = null;
-    this[this.widgetName] = null;
+    // this[this.widgetName] = null;
 
-    lifecycleManager.delete(this);
+    LifecycleManager.delete(this);
   }
 
   /**
@@ -370,6 +388,10 @@ export class Component {
   }
 
   #attachLifecycleMethods() {
+    if (this.onCreate) {
+      registerLifecycleEvent(LCEvents.CREATE, this);
+    }
+
     if (this.onAppended) {
       registerLifecycleEvent(LCEvents.APPENDED, this);
     }

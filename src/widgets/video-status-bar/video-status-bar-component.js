@@ -1,4 +1,7 @@
-import { Component } from "../component.js";
+import {
+  Component,
+  createComponentThroughCreationLifecycle,
+} from "../component.js";
 import { Dom } from "../../dom/dom-utils.js";
 import PlaylistPopoverComponent from "../popover/playlist-popover/playlist-popover-component.js";
 
@@ -10,7 +13,7 @@ export default class VideoStatusBarComponent extends Component {
 
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   onRefresh() {
@@ -30,7 +33,7 @@ export default class VideoStatusBarComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     this.addClass("show");
     this.appendWrapper(
       this.#createVideoStatusWrapper(),
@@ -38,7 +41,10 @@ export default class VideoStatusBarComponent extends Component {
     );
 
     if (this.videoStatusBar.player.hasPlaylist()) {
-      new PlaylistPopoverComponent(this.videoStatusBar.popovers.playlist);
+      createComponentThroughCreationLifecycle(
+        PlaylistPopoverComponent,
+        this.videoStatusBar.popovers.playlist
+      );
     }
 
     this.videoStatusBar.on("refresh", this.onRefresh.bind(this));

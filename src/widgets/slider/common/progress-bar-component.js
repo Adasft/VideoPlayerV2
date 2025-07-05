@@ -4,7 +4,7 @@ import { Dom } from "../../../dom/dom-utils.js";
 export class SliderProgressBarComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -19,7 +19,7 @@ export class SliderProgressBarComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     this.progressBar.on("progressUpdate", this.onProgressUpdate.bind(this));
 
     this.element.addClass(this.progressBar.getName());

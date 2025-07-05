@@ -4,7 +4,7 @@ import { Dom } from "../../../dom/dom-utils.js";
 export class SliderThumbComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -31,7 +31,7 @@ export class SliderThumbComponent extends Component {
     isVisible ? this.show() : this.hide();
   }
 
-  #init() {
+  onCreate() {
     this.thumb.on("move", this.onMove.bind(this));
     this.thumb.on("visibilityChange", this.onVisibilityChange.bind(this));
   }

@@ -4,7 +4,7 @@ import { Dom } from "../../dom/dom-utils.js";
 export default class PlayerComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -28,7 +28,7 @@ export default class PlayerComponent extends Component {
     this.appendWrapper(this.#createVideoContainerWrapper());
   }
 
-  #init() {
+  onCreate() {
     this.css({
       width: `${this.player.width}px`,
       height: `${this.player.height}px`,

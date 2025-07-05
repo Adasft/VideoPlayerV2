@@ -11,7 +11,7 @@ export default class TextViewComponent extends Component {
    */
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -20,7 +20,7 @@ export default class TextViewComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     const { textView } = this;
     this.#textNode = Dom.text(textView.text);
     this.element.append([this.#textNode]);

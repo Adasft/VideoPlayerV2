@@ -4,7 +4,7 @@ import { Dom } from "../../dom/dom-utils.js";
 export default class LoaderComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   createElement() {
@@ -13,7 +13,7 @@ export default class LoaderComponent extends Component {
     });
   }
 
-  #init() {
+  onCreate() {
     this.loader.on("visibilityChange", (isVisible) => {
       isVisible ? this.show() : this.hide();
     });

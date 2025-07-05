@@ -892,7 +892,7 @@ export default class Player extends Widget {
 
     if (
       !this.hasPlaylist() ||
-      (this.playlist.isEndOfList && !this.loop && ! this.playlist.loop)
+      (this.playlist.isEndOfList && !this.loop && !this.playlist.loop)
     ) {
       this.controls.buttons.play.hide();
       this.controls.buttons.reload.show();
@@ -914,10 +914,10 @@ export default class Player extends Widget {
   }
 }
 
-export function createPlayer(options) {
+export async function create(options) {
   const mountedQueue = [];
-  const player = new Player(options);
-  new PlayerComponent(player);
+  const player = await ui.createPlayer(options);
+
   player.once("controlsReady", () => {
     mountedQueue.forEach((fn) => fn());
   });

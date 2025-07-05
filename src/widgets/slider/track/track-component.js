@@ -1,11 +1,14 @@
-import { Component } from "../../component.js";
+import {
+  Component,
+  createComponentThroughCreationLifecycle,
+} from "../../component.js";
 import { Dom } from "../../../dom/dom-utils.js";
 import { SliderProgressBarComponent } from "../common/progress-bar-component.js";
 
 export class SliderTrackComponent extends Component {
   constructor(widget) {
     super(widget);
-    this.#init();
+    // this.#init();
   }
 
   onMouseEnter() {
@@ -35,7 +38,7 @@ export class SliderTrackComponent extends Component {
     this.#setHoverPadding();
   }
 
-  #init() {
+  onCreate() {
     const { track } = this;
 
     this.element.append([this.#createProgressBarsWrapper()]);
@@ -50,7 +53,9 @@ export class SliderTrackComponent extends Component {
     const { bars } = this.track;
 
     for (const [, bar] of Object.entries(bars)) {
-      wrapper.add(new SliderProgressBarComponent(bar));
+      wrapper.add(
+        createComponentThroughCreationLifecycle(SliderProgressBarComponent, bar)
+      );
     }
 
     return wrapper;
