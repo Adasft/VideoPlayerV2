@@ -251,6 +251,8 @@ export class DomText extends DomNode {
   }
 
   remove() {
-    this.node.remove();
+    if (this.isConnected) {
+      this.node.remove();
+    }
   }
 }

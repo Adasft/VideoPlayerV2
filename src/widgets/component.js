@@ -138,10 +138,8 @@ function triggerEventWithPropagation(eventName, rootComponent, componentsSet) {
  */
 function triggerEventWithoutPropagation(eventName, component, componentsSet) {
   if (!componentsSet.has(component)) {
-    console.log("removed: ", component);
     return;
   }
-  console.log("add: ", component);
 
   dispatchComponentEvent(eventName, component, componentsSet);
 }

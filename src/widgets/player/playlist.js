@@ -23,6 +23,8 @@ import { shuffle, orderBy, getRandomId } from "../../utils.js";
  *   currentTime?: number;
  *   chapters?: Chapter[];
  *   subtitles?: Subtitle[];
+ *   author?: string;
+ *   description?: string;
  * }
  */
 
@@ -191,6 +193,8 @@ export default class PlayList {
       chapters: source.chapters,
       subtitles: source.subtitles,
       orderIndex: index,
+      author: source.author,
+      description: source.description,
     }));
   }
 

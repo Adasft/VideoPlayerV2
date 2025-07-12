@@ -44,7 +44,7 @@ export default class VolumeControl extends Widget {
   }
 
   async onRefresh(hasAudio) {
-    await this.controls.createOrDestroyVolumeSlider();
+    await this.controls.toggleVolumeSlider();
 
     if (!hasAudio) {
       this.controls.buttons.volume.icon = SVGIcons.VOLUME_MUTED;

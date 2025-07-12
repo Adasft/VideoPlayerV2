@@ -93,8 +93,8 @@ const player = await create({
     ],
   },
   volume: 0.5,
-  width: 700,
-  height: 700,
+  width: 1094,
+  height: 617,
   muted: false,
   enableStorage: true,
   overwriteStorage: false,
@@ -104,6 +104,10 @@ const player = await create({
     loop: false,
     startIndex: 0,
     sources: [
+      // {
+      //   src: "https://cuyyro04xrqrh.premilkyway.com/hls2/01/10567/56ntlqbqfiw6_,l,n,.urlset/master.m3u8?t=DWjZhHpFCYaLNq0DgZ5ZAGU0F1_nW40jUIBA_aYyJ6I&s=1751833913&e=129600&f=52835013&srv=3FjgDmcnea8S35m&i=0.4&sp=500&p1=3FjgDmcnea8S35m&p2=3FjgDmcnea8S35m&asn=28509",
+      //   title: "Video 0",
+      // },
       {
         src: "./video1.mp4",
         title: "Video 1",

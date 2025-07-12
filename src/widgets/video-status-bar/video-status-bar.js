@@ -57,9 +57,9 @@ export default class VideoStatusBar extends Widget {
     const currentTime = this.player.currentTime;
     const titleText = source.title;
 
-    await this.controls.createOrDestroyPlaylistControls();
-    await this.controls.createOrDestroyChaptersControls();
-    await this.controls.createOrDestroyChapterTitle();
+    await this.controls.togglePlaylistControls();
+    await this.controls.toggleChaptersControls();
+    // await this.controls.toggleChapterTitle();
 
     sliders.seeker.refresh({
       value: currentTime,

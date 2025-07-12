@@ -49,6 +49,17 @@ export class Wrapper extends DomElement {
     return this;
   }
 
+  reactiveText(observer) {
+    const textNode = Dom.text(observer.getFirstValue());
+    this.append(textNode);
+
+    observer.subscribe((value) => {
+      textNode.textContent = value;
+    });
+
+    return this;
+  }
+
   class(...classList) {
     this.addClass(classList);
     return this;

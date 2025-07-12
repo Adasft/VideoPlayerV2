@@ -69,7 +69,7 @@ export default class PopoverComponent extends Component {
 
   position;
 
-  onStartOpen() {
+  onStartOpen = () => {
     if (this.isConnected) return;
 
     this.mount(document.body);
@@ -93,16 +93,23 @@ export default class PopoverComponent extends Component {
     } else {
       this.#open();
     }
-  }
 
-  outsideClickHandler = ({ target }) => {
+    this.on.ignoreDelegation("transitionend", this.onTransitionEnd);
+  };
+
+  onStartClose = () => {
+    this.hide();
+    this.addClass("disappear-effect");
+  };
+
+  onOutsideClick = ({ target }) => {
     const popoverTargetNode = this.popover.target.component.node;
     if (!this.node.contains(target) && !popoverTargetNode.contains(target)) {
-      this.#close();
+      this.popover.emit("startClose");
     }
   };
 
-  windowResizeHandler = () => {
+  onWindowResize = () => {
     const position = this.#getPosition(this.popover.placement);
     if (
       !position ||
@@ -121,24 +128,28 @@ export default class PopoverComponent extends Component {
     this.popover.target.component.resetBounds();
   };
 
+  onTransitionEnd = () => {
+    this.off.ignoreDelegation("transitionend", this.onTransitionEnd);
+    this.#close();
+  };
+
   onMounted(event) {
     event.preventDispose();
-    console.log("PopoverComponent mounted");
-    Dom.on(document, "click", this.outsideClickHandler);
-    Dom.on(window, "resize", this.windowResizeHandler);
+    Dom.on(document, "click", this.onOutsideClick);
+    Dom.on(window, "resize", this.onWindowResize);
   }
 
   onDismount(event) {
     event.preventDispose();
-    Dom.off(document, "click", this.outsideClickHandler);
-    Dom.off(window, "resize", this.windowResizeHandler);
+    Dom.off(document, "click", this.onOutsideClick);
+    Dom.off(window, "resize", this.onWindowResize);
     this.popover.target.component.resetBounds();
     this.position = null;
   }
 
   onCreate() {
-    this.popover.on("startOpen", this.onStartOpen.bind(this));
-    this.popover.on("startClose", () => this.#close());
+    this.popover.on("startOpen", this.onStartOpen);
+    this.popover.on("startClose", this.onStartClose);
   }
 
   #open() {
@@ -148,6 +159,7 @@ export default class PopoverComponent extends Component {
   }
 
   #close() {
+    this.removeClass("disappear-effect");
     this.dismount();
     this.popover.emit("closed");
   }

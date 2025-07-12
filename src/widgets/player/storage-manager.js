@@ -73,14 +73,6 @@ export default class StorageManager {
       times,
     } = this.#tracker.getState();
 
-    // options.startIndex = currentIndex;
-    // options.loop = loop;
-
-    // // In Safari, setting currentTime equal to the duration can trigger 'ended' immediately.
-    // // Apparently, loading a video is equivalent to ending it.
-    // // Safari knows more than you do, so don't question it.
-    // options.sources[currentIndex].currentTime = times[currentIndex] || 0;
-
     return {
       ...options,
       startIndex: currentIndex,

@@ -68,6 +68,10 @@ class ControlsGroup {
     };
   }
 
+  // static createWhenInGroup()
+  // this.button.createWhen(() => true, [this.textView])
+  // ControlsGroup.createWhenInGroup([this.button, this.textView], () => true)
+
   async #forEachControls(controls, callback) {
     const controlsEntries = Object.entries(controls);
 
@@ -150,14 +154,6 @@ class ControlsGroup {
 }
 
 export class Controls {
-  #assignGroup(group) {
-    const controlsGroup = new ControlsGroup(group);
-    Object.defineProperty(this, group.name, {
-      value: controlsGroup,
-    });
-    return controlsGroup;
-  }
-
   /**
    * Define un nuevo grupo de controles
    *
@@ -182,5 +178,13 @@ export class Controls {
       name,
       createControl,
     });
+  }
+
+  #assignGroup(group) {
+    const controlsGroup = new ControlsGroup(group);
+    Object.defineProperty(this, group.name, {
+      value: controlsGroup,
+    });
+    return controlsGroup;
   }
 }

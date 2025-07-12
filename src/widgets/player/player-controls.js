@@ -7,10 +7,10 @@ export default class PlayerControls {
   #controls;
 
   #conditionalControls = {
-    createOrDestroyPlaylistControls: noop,
-    createOrDestroyChaptersControls: noop,
-    createOrDestroyChapterTitle: noop,
-    createOrDestroyVolumeSlider: noop,
+    handlePlaylistControls: noop,
+    handleChaptersControls: noop,
+    handleChapterTitle: noop,
+    handleVolumeSlider: noop,
   };
 
   constructor(player) {
@@ -34,33 +34,49 @@ export default class PlayerControls {
     return this.#controls.textViews;
   }
 
-  createOrDestroyPlaylistControls() {
-    return this.#conditionalControls.createOrDestroyPlaylistControls({
-      prev: { icon: SVGIcons.BACKWARD },
-      next: { icon: SVGIcons.FORWARD },
-      playlist: { icon: SVGIcons.PLAYLIST },
-      shuffle: { icon: SVGIcons.SHUFFLE },
-      loop: { icon: SVGIcons.REPEAT },
+  async createControls() {
+    const group = [
+      this.#createButtonGroupControls(),
+      this.#createSliderGroupControls(),
+      this.#createTextViewGroupControls(),
+    ];
+
+    await this.#defineControlGroups(group);
+
+    this.togglePlaylistControls();
+    this.toggleChaptersControls();
+  }
+
+  togglePlaylistControls() {
+    return this.#conditionalControls.handlePlaylistControls({
+      buttons: {
+        prev: { icon: SVGIcons.BACKWARD },
+        next: { icon: SVGIcons.FORWARD },
+        playlist: { icon: SVGIcons.PLAYLIST },
+        shuffle: { icon: SVGIcons.SHUFFLE },
+        loop: { icon: SVGIcons.REPEAT },
+      },
+      textViews: {
+        currentSourceTitle: { text: this.player.playlist.currentSource.title },
+      },
     });
   }
 
-  createOrDestroyChaptersControls() {
-    return this.#conditionalControls.createOrDestroyChaptersControls({
-      chapters: { icon: SVGIcons.CHAPTERS },
+  toggleChaptersControls() {
+    return this.#conditionalControls.handleChaptersControls({
+      buttons: {
+        chapters: { icon: SVGIcons.CHAPTERS },
+      },
+      textViews: {
+        chapterTitle: { text: this.player.getCurrentChapterTitle() },
+      },
     });
   }
 
-  createOrDestroyChapterTitle() {
-    return this.#conditionalControls.createOrDestroyChapterTitle({
-      chapterTitle: { text: this.player.getCurrentChapterTitle() },
-    });
-  }
-
-  createOrDestroyVolumeSlider() {
-    return this.#conditionalControls.createOrDestroyVolumeSlider({
+  toggleVolumeSlider() {
+    return this.#conditionalControls.handleVolumeSlider({
       volume: {
         volume: this.player.volume,
-        // this.player.autoplay && this.player.muted ? 0 : this.player.volume,
       },
     });
   }
@@ -77,8 +93,6 @@ export default class PlayerControls {
       reload: { icon: SVGIcons.RELOAD },
       volume: { icon: SVGIcons.VOLUME_HIGH },
       repeat: { icon: SVGIcons.REPEAT },
-      // TODO: Remove shuffle button
-      // shuffle: { icon: SVGIcons.SHUFFLE },
       fullscreen: { icon: SVGIcons.FULLSCREEN },
       skipBack: { icon: this.#getSkipTimeIcon(skipTime, "BACK") },
       skipForward: { icon: this.#getSkipTimeIcon(skipTime, "FORWARD") },
@@ -159,30 +173,34 @@ export default class PlayerControls {
     this.#defineConditionalControls();
   }
 
-  #defineConditionalControls() {
-    // Define las condiciones para crear o destruir los controles de
-    // la lista de reproducción y los capítulos.
-    this.#conditionalControls.createOrDestroyPlaylistControls =
-      this.buttons.createWhen(() => this.player.hasPlaylist());
-    this.#conditionalControls.createOrDestroyChaptersControls =
-      this.buttons.createWhen(() => this.player.hasChapters());
-    this.#conditionalControls.createOrDestroyChapterTitle =
-      this.textViews.createWhen(() => this.player.hasChapters());
-    this.#conditionalControls.createOrDestroyVolumeSlider =
-      this.sliders.createWhen(() => this.player.hasAudio);
+  #createConditionalHandler({ condition, groups }) {
+    const handlers = groups.map((group) => [
+      group.name,
+      group.createWhen(condition),
+    ]);
+
+    return (options) => {
+      return Promise.allSettled(
+        handlers.map(([name, handler]) => handler(options[name]))
+      );
+    };
   }
 
-  async createControls() {
-    const group = [
-      this.#createButtonGroupControls(),
-      this.#createSliderGroupControls(),
-      this.#createTextViewGroupControls(),
-    ];
+  #defineConditionalControls() {
+    this.#conditionalControls.handleVolumeSlider = this.sliders.createWhen(
+      () => this.player.hasAudio
+    );
 
-    await this.#defineControlGroups(group);
+    this.#conditionalControls.handlePlaylistControls =
+      this.#createConditionalHandler({
+        condition: () => this.player.hasPlaylist(),
+        groups: [this.buttons, this.textViews],
+      });
 
-    this.createOrDestroyPlaylistControls();
-    this.createOrDestroyChaptersControls();
-    this.createOrDestroyChapterTitle();
+    this.#conditionalControls.handleChaptersControls =
+      this.#createConditionalHandler({
+        condition: () => this.player.hasChapters(),
+        groups: [this.buttons, this.textViews],
+      });
   }
 }
