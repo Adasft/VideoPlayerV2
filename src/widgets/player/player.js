@@ -3,126 +3,10 @@ import * as ui from "../../ui/ui-utils.js";
 import SVGIcons from "../../ui/icons.js";
 import PlayerControls from "./player-controls.js";
 import StorageManager from "./storage-manager.js";
-import { formatTime, getRandomId, lookupMapValue } from "../../utils.js";
-import PlayerComponent from "./player-component.js";
+import { formatTime, getRandomId } from "../../utils.js";
 
 const VALID_SKIP_TIMES = [5, 10, 15, 20];
 const DEFAULT_SKIP_TIME = 5;
-
-// class Interceptor {
-//   /**
-//    * Singleton instance of ActionsInterceptor
-//    * @type {Interceptor}
-//    * @private
-//    */
-//   static #instance = null;
-
-//   /**
-//    * Getter of singleton instance of ActionsInterceptor
-//    * @returns {Interceptor}
-//    */
-//   static get shared() {
-//     if (!Interceptor.#instance) {
-//       Interceptor.#instance = new Interceptor();
-//     }
-//     return Interceptor.#instance;
-//   }
-
-//   static SHOW_PLAYLIST = "showPlaylist";
-//   static SHOW_CHAPTERS = "showChapters";
-
-//   #interceptors = new Map();
-
-//   constructor() {
-//     if (Interceptor.#instance) {
-//       throw new Error(
-//         "ActionsInterceptor is a singleton and cannot be instantiated multiple times."
-//       );
-//     }
-//   }
-
-//   register(
-//       interceptorId, playerId,
-//     { name, cancelDefaultAction = false, handler }
-//   ) {
-//     const interceptorMap = lookupMapValue(
-//       this.#interceptors,
-//       interceptorId,
-//       new Map()
-//     );
-//     const playerInterceptors = lookupMapValue(interceptorMap, playerId, []);
-
-//     if (typeof handler !== "function") {
-//       throw new TypeError("Interceptor must be a function.");
-//     }
-
-//     playerInterceptors.push({
-//       id: playerId,
-//       name,
-//       cancelDefaultAction,
-//       handler,
-//     });
-
-//     /**
-//      * this.actionId = Interceptor.shared.createActionId([Interceptor.SHOW_PLAYLIST], player.id);
-//      * Interceptor.shared.define(this.actionId.showPlaylist, {
-//      *  name: "showMyPlaylist",
-//      *  cancelDefaultAction: true,
-//      *  handler: (ctx) => {}
-//      * });
-//      * Interceptor.shared.registerAction(this.actionId.showPlaylist, () => {})
-//      * controls.buttons.showPlaylist.on("click", Interceptor.shared.createHandler(this.actionId.showPlaylist, ctx)
-//     */
-//   }
-
-//   execute(interceptorId, playerId, ctx) {
-//     const interceptorMap = this.#interceptors.get(interceptorId);
-//     if (!interceptorMap) {
-//       return false;
-//     }
-
-//     const playerInterceptors = interceptorMap.get(playerId);
-//     if (!playerInterceptors || playerInterceptors.length === 0) {
-//       return false;
-//     }
-
-//     for (const interceptor of playerInterceptors) {
-//       const event = new InterceptorEvent({
-//         target: ctx.target,
-//         type: interceptor.name,
-//         data: ctx.data,
-//         nativeEvent: ctx.nativeEvent,
-//       });
-
-//       interceptor.handler(event, ctx);
-
-//       if (event.defaultPrevented && interceptor.cancelDefaultAction) {
-//         return true;
-//       }
-//     }
-//     return false;
-//   }
-
-//   delete(id) {
-//     return this.#interceptors.delete(id);
-//   }
-// }
-
-/** 
-//      * this.actionId = Interceptor.shared.createActionId([Interceptor.SHOW_PLAYLIST], player.id);
-//      * player.interceptor.define(Interceptor.actions.SHOW_PLAYLIST, {
-//      *  name: "showMyPlaylist",
-//      *  cancelDefaultAction: true,
-//      *  handler: (ctx) => {}
-//      * });
-//      * player.interceptor.registerAction(Interceptor.actions.SHOW_PLAYLIST, () => {})
-//      * controls.buttons.showPlaylist.on("click", Interceptor.shared.createHandler(this.actionId.showPlaylist, ctx)
-//     
-*/
-
-// player.interceptors.showPlaylist.registerDefaultAction(() => {
-//   console.log("Default action for showPlaylist executed.");
-// });
 
 class InterceptorAction {
   #actions = [];
@@ -202,6 +86,27 @@ class InterceptorActions {
   showChapters = new InterceptorAction();
 }
 
+/**
+ * @typedef {import("./playlist.js").default} PlayList
+ * @typedef {import("../video/video.js").default} Video
+ * @typedef {import("../video-status-bar/video-status-bar.js").default} VideoStatusBar
+ * @typedef {import("../playback-controls/playback-controls.js").default} PlaybackControls
+ * @typedef {import("../loader/loader.js").default} Loader
+ * @typedef {import("../volume-control/volume-control.js").default} VolumeControl
+ *
+ * @typedef {Object} Source
+ * @property {string} src - The source URL of the media.
+ * @property {string} title - The title of the media.
+ * @property {string} [poster] - Optional poster image URL.
+ * @property {string} [thumbnail] - Optional thumbnail image URL.
+ * @property {number} [currentTime] - Optional current playback time in seconds.
+ * @property {{start: number, end: number, title: string}[]} chapters - Optional array of chapters with start and end times.
+ * @property {{start: number, end: number, text: string}[]} subtitles - Optional array of subtitles with start and end times.
+ * @property {string} [author] - Optional author of the media.
+ * @property {string} [description] - Optional description of the media.
+ * @property {number} orderIndex - The index of the source in the playlist.
+ */
+
 export default class Player extends Widget {
   /**
    * Unique identifier for the player instance
@@ -209,9 +114,10 @@ export default class Player extends Widget {
    * @private
    */
   #id = `player-${getRandomId()}`;
+
   /**
    * The current media source object being played
-   * @type {Object|null}
+   * @type {Source|null}
    * @private
    */
   #currentSource;
@@ -286,7 +192,8 @@ export default class Player extends Widget {
 
   /**
    * Playlist object containing multiple media sources
-   * @type {Object|null}
+   *
+   * @type {PlayList}
    * @private
    */
   #playlist;
@@ -328,53 +235,46 @@ export default class Player extends Widget {
    */
   #overwriteStorage;
 
-  /**
-   * Storage tracking object for monitoring playback progress and state
-   * @type {Object|null}
-   * @private
-   */
-  #storageTracker;
-
   // UI Components
 
   /**
    * Main video element for media playback
-   * @type {Object|null}
+   * @type {Video}
    * @private
    */
   #video;
 
   /**
    * Video status bar component showing playback information
-   * @type {Object|null}
+   * @type {VideoStatusBar}
    * @private
    */
   #videoStatusBar;
 
   /**
    * Playback control buttons component (play, pause, stop, etc.)
-   * @type {Object|null}
+   * @type {PlaybackControls}
    * @private
    */
   #playbackControls;
 
   /**
    * Loading spinner/indicator component
-   * @type {Object|null}
+   * @type {Loader}
    * @private
    */
   #loader;
 
   /**
    * Volume control slider and mute button component
-   * @type {Object|null}
+   * @type {VolumeControl}
    * @private
    */
   #volumeControl;
 
   /**
    * Main player controls container managing all control components
-   * @type {PlayerControls|null}
+   * @type {PlayerControls}
    * @private
    */
   #controls;
@@ -382,7 +282,9 @@ export default class Player extends Widget {
   // Storage Management
 
   /**
-   * Storage manager instance for handling data persistence and retrieval
+   * Storage manager instance for handling data persistence and retrieval.
+   * This manages player state like volume, playback rate, etc.
+   *
    * @type {StorageManager|null}
    * @private
    */
@@ -390,6 +292,23 @@ export default class Player extends Widget {
 
   #actions = null;
 
+  /**
+   * Creates a new Player instance.
+   * @param {Object} options - Player configuration options.
+   * @param {Source} options.source - The initial media source to play.
+   * @param {number} [options.width=400] - The width of the player in pixels.
+   * @param {number} [options.height=400] - The height of the player in pixels.
+   * @param {boolean} [options.autoplay=false] - Whether to autoplay the media.
+   * @param {number} [options.volume=1] - Initial volume level (0.0 to 1.0).
+   * @param {boolean} [options.muted=false] - Whether to start muted.
+   * @param {boolean} [options.loop=false] - Whether the media should loop.
+   * @param {"none" | "infinite" | "once"} [options.loopMode="none"] - Loop mode for playlist behavior.
+   * @param {number} [options.skipTime=5] - Time in seconds to skip forward/backward.
+   * @param {{loop: boolean, startIndex: number, sources: Source[]}} [options.playlist] - Optional playlist object containing multiple sources.
+   * @param {boolean} [options.enableStorage=false] - Whether to enable local storage for player state.
+   * @param {boolean} [options.overwriteStorage=false] - Whether to overwrite existing storage data.
+   * @param {number} [options.playbackRate=1] - Initial playback speed multiplier (0.25 to 4).
+   */
   constructor({
     source,
     width = 400,
@@ -472,10 +391,6 @@ export default class Player extends Widget {
 
   get playlist() {
     return this.#playlist;
-  }
-
-  get storage() {
-    return this.#storageTracker;
   }
 
   // Propiedades de configuración
@@ -665,7 +580,7 @@ export default class Player extends Widget {
       this.once("playlistReady", this.#onPlaylistReady.bind(this));
     }
 
-    this.on("sourceChange", this.#onSourceChange.bind(this));
+    this.on("sourceChanged", this.#onsourceChanged.bind(this));
     this.once("videoReady", this.#onVideoReady.bind(this));
     this.once("controlsReady", this.#onControlsReady.bind(this));
   }
@@ -682,7 +597,7 @@ export default class Player extends Widget {
 
   /**
    * Inicializa la playlist si se proporciona en las opciones.
-   * @param {Object} options
+   * @param {PlayList} playlist
    */
   async #initializePlaylist(playlist, defaultSource) {
     if (!Array.isArray(playlist?.sources) || typeof playlist !== "object") {
@@ -795,7 +710,7 @@ export default class Player extends Widget {
     );
   }
 
-  #onSourceChange(source) {
+  #onsourceChanged(source) {
     this.video.refresh({ src: source.src, currentTime: source.currentTime });
 
     if (this.#autoplay) {

@@ -230,7 +230,7 @@ export class DomElement extends DomNode {
 }
 
 export class DomText extends DomNode {
-  constructor(text) {
+  constructor(text = "") {
     super(text, DomNode.DOM_TEXT_TYPE);
   }
 

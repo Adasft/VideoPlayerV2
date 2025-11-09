@@ -1,130 +1,4 @@
-class EventObserver {
-  #destroyCallbacks = null;
-  #derivatedObservers = new Set();
-
-  map(transform) {
-    if (typeof transform !== "function") {
-      throw new Error("EventObserver.map: Transform must be a function");
-    }
-
-    const derivatedObserver = new EventObserverMapped({
-      source: this,
-      transformations: [transform],
-    });
-    this.#derivatedObservers.add(derivatedObserver);
-
-    derivatedObserver.onDestroy(() => {
-      this.#derivatedObservers.delete(derivatedObserver);
-    });
-
-    return derivatedObserver;
-  }
-
-  onDestroy(callback) {
-    if (typeof callback !== "function") {
-      throw new Error("EventObserver.onDestroy: Callback must be a function");
-    }
-
-    if (!this.#destroyCallbacks) {
-      this.#destroyCallbacks = [];
-    }
-
-    this.#destroyCallbacks.push(callback);
-  }
-
-  destroy() {
-    this.#destroyCallbacks?.forEach((callback) => callback());
-    this.#destroyCallbacks = null;
-
-    this.#derivatedObservers.forEach((observer) => observer.destroy());
-    this.#derivatedObservers.clear();
-  }
-
-  update(data) {
-    if (this.#derivatedObservers.size === 0) {
-      return;
-    }
-
-    this.#derivatedObservers.forEach((observer) => observer.notify(data));
-  }
-}
-
-class EventObserverMapped extends EventObserver {
-  #transformations = [];
-  #subscribers = new Set();
-
-  constructor({ transformations }) {
-    this.#transformations = transformations;
-  }
-
-  destroy() {
-    super.destroy();
-    this.#transformations = [];
-    this.#subscribers.clear();
-  }
-
-  getFirstValue() {
-    if (this.#transformations.length === 0) {
-      throw new Error(
-        "EventObserverMapped.getFirstValue: No transformations defined"
-      );
-    }
-
-    return this.#transformations[0]();
-  }
-
-  map(transform) {
-    if (typeof transform !== "function") {
-      throw new Error("EventObserverMapped.map: Transform must be a function");
-    }
-
-    this.transformations = [...this.#transformations, transform];
-    return this;
-  }
-
-  suscribe(callback) {
-    if (typeof callback !== "function") {
-      throw new Error(
-        "EventObserverMapped.suscribe: Callback must be a function"
-      );
-    }
-
-    this.#subscribers.add(callback);
-    return this;
-  }
-
-  unsubscribe(callback) {
-    this.#subscribers.delete(callback);
-    return this;
-  }
-
-  notify(data) {
-    if (this.#subscribers.size === 0) {
-      return;
-    }
-
-    let transformedData = data;
-    try {
-      for (const transform of this.#transformations) {
-        transformedData = transform(transformedData);
-      }
-      this.#subscribers.forEach((sub) => sub(transformedData, data));
-    } catch (error) {
-      console.error("Error in EventObserverMapped transformation:", error);
-    }
-  }
-}
-
-// observe(ob) -> ob.suscribe((data) => this.node.text(data))
-// eventBus.attach(["sourceChange"], this)
-
-// const observable = this.widget.observeEvent("sourceChange")
-// const newObservable = observable.map(data => data.toLowerCase())
-// newObservable.subscribe((data) => {
-//   this.node.text(data)
-// })
-// ... More code
-// eventBus.emit("sourceChange", "new data")
+import { Observable } from "../utils/observable/observable.js";
 
 class EventBus {
   /**
@@ -134,7 +8,7 @@ class EventBus {
    * This allows for efficient management of event listeners and ensures that
    * callbacks can be added, removed, and executed without conflicts.
    *
-   * @type {Map<string, {observer: EventObserver | null, callbacks: Set<Function>}>}
+   * @type {Map<string, {observer: Observable | null, callbacks: Set<Function>}>}
    */
   #bus = new Map();
 
@@ -150,13 +24,18 @@ class EventBus {
       });
     }
 
-    const { observer: currentObserver } = this.#bus.get(event);
+    const eventData = this.#bus.get(event);
 
-    if (currentObserver !== observer) {
-      throw new Error(
-        `Observer for event "${event}" is already set to a different observer.`
-      );
+    if (eventData.observer) {
+      if (eventData.observer !== observer)
+        throw new Error(
+          `Observer for event "${event}" is already set to a different observer.`
+        );
+
+      return;
     }
+
+    eventData.observer = observer;
   }
 
   detachObserver(event) {
@@ -178,7 +57,7 @@ class EventBus {
    * If an observer is provided, it will be associated with the event.
    * @param {string} event - The event to register the callback for.
    * @param {Function} callback - The callback function to be executed when the event is emitted.
-   * @param {EventObserver} [defaultObserver] - An optional observer that can be associated with the event.
+   * @param {Observable} [defaultObserver] - An optional observer that can be associated with the event.
    */
   on(event, callback, defaultObserver = null) {
     if (!this.#bus.has(event)) {
@@ -207,8 +86,8 @@ class EventBus {
 
     const { observer, callbacks } = this.#bus.get(event);
 
-    callbacks.forEach((callback) => callback(...args));
-    observer?.update(args);
+    callbacks.forEach(callback => callback(...args));
+    observer?.notify(args);
   }
 
   off(event, callback) {
@@ -296,13 +175,32 @@ export class Widget {
 
   onRefresh() {}
 
-  observeEvent(event) {
-    let observer = this.#eventBus.getObserverByEvent(event);
-    if (!observer) {
-      observer = new EventObserver();
-      this.#eventBus.attachObserver(event, observer);
-      observer.onDestroy(() => this.#eventBus.detachObserver(event));
+  /**
+   * Observes a set of events and returns an Observable that emits when any of the events occur.
+   * This method allows you to listen for multiple events and react to them collectively.
+   *
+   * @param {string[]} events - An array of event names to observe.
+   * @returns {Observable} An Observable that emits when any of the specified events occur.
+   */
+  observeEvent(events) {
+    if (events.length === 0) {
+      return;
     }
+
+    const primaryEvent = events[0];
+    const observer =
+      this.#eventBus.getObserverByEvent(primaryEvent) ??
+      new Observable({
+        onDestroy: () => {
+          this.#eventBus.detachObserver(primaryEvent);
+        },
+      });
+
+    // Attach the observer to all events
+    for (const event of events) {
+      this.#eventBus.attachObserver(event, observer);
+    }
+
     return observer;
   }
 

@@ -50,6 +50,11 @@ const VERTICAL_PLACEMENT = Symbol();
 const HORIZONTAL_PLACEMENT = Symbol();
 
 export default class PopoverComponent extends Component {
+  /**
+   * @type {import("../popover.js").default}
+   */
+  popover;
+
   constructor(widget) {
     super(widget);
   }

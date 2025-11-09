@@ -84,7 +84,7 @@ export default class VideoComponent extends Component {
   }
 
   onLoadedMetaData() {
-    this.on.ignoreDelegation("canplay", () => this.onCanPlay(), { once: true });
+    this.on.ignoreDelegation("canplay", () => this.onCanPlay());
 
     this.video.emit("loadedMetaData", {
       duration: this.node.duration,
@@ -136,10 +136,7 @@ export default class VideoComponent extends Component {
     this.#initializeVideoData(video.autoplay ? true : video.muted);
 
     // Eventos del DOM
-    this.on.ignoreDelegation(
-      "loadedmetadata",
-      this.onLoadedMetaData.bind(this)
-    );
+    this.on.ignoreDelegation("loadedmetadata", this.onLoadedMetaData.bind(this));
     this.on("click", this.onClick.bind(this));
     this.on.ignoreDelegation("waiting", this.onWaiting.bind(this));
     this.on.ignoreDelegation("playing", this.onPlaying.bind(this));

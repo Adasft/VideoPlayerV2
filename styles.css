@@ -26,6 +26,11 @@
   --player-xl-text: 25px;
 }
 
+body {
+  background: #444;
+  color: #fff;
+}
+
 .show {
   visibility: visible;
 }
@@ -71,7 +76,7 @@
   background-color: rgb(0 0 0 / 50%);
   backdrop-filter: blur(30px) saturate(120%);
   border: 1px solid #555355;
-  box-shadow: 0 0 0 0.5px #010101;
+  box-shadow: 0 0 0 1px #010101, 0px 40px 62px -3px rgba(0, 0, 0, 0.7);
   transform-origin: center bottom;
 
   &.show {

@@ -1,7 +1,7 @@
 import { DomElement } from "../dom/element.js";
 import { Wrapper } from "./wrapper.js";
 import { Dom } from "../dom/dom-utils.js";
-import { getRandomId } from "../utils.js";
+import { getRandomId } from "../utils/utils.js";
 
 export const LCEvents = {
   /**

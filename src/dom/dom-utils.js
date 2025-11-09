@@ -17,7 +17,7 @@ export class Dom {
   }
 
   static once(target, eventType, listener) {
-    EventEmitter.shared.on.ignoreDelegation(target, eventType, listener, {
+    EventEmitter.shared.on.ignoreDelegation(target, eventType, {
       once: true,
     });
   }

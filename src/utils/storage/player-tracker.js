@@ -43,10 +43,6 @@ export default class PlayerStorageTracker {
 
   #validStateKeys = Object.keys(this.#defaultState);
 
-  constructor(player) {
-    this.player = player;
-  }
-
   getState() {
     if (!this.#stateCache) {
       const state = Storage.get(STORAGE_KEY) || {};

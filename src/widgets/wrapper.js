@@ -1,5 +1,6 @@
 import { Dom } from "../dom/dom-utils.js";
 import { DomElement } from "../dom/element.js";
+import { Observable } from "../utils/observable/observable.js";
 import { Component } from "./component.js";
 
 export class Wrapper extends DomElement {
@@ -44,19 +45,12 @@ export class Wrapper extends DomElement {
   }
 
   text(...text) {
-    const nodes = text.map((t) => Dom.text(t));
-    this.append(nodes);
-    return this;
-  }
-
-  reactiveText(observer) {
-    const textNode = Dom.text(observer.getFirstValue());
-    this.append(textNode);
-
-    observer.subscribe((value) => {
-      textNode.textContent = value;
+    const nodes = text.map((t) => {
+      return t instanceof Observable
+        ? this.#createReactiveText(t)
+        : Dom.text(t);
     });
-
+    this.append(nodes);
     return this;
   }
 
@@ -71,6 +65,16 @@ export class Wrapper extends DomElement {
     }
 
     return true;
+  }
+
+  #createReactiveText(observer) {
+    const textNode = Dom.text();
+
+    observer.subscribe((value) => {
+      textNode.setText(value);
+    });
+
+    return textNode;
   }
 
   #insertChildAtPosition(position, child) {

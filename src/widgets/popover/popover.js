@@ -1,5 +1,9 @@
 import { Widget } from "../widget.js";
 export default class Popover extends Widget {
+  /**
+   * @type {import("../player/player.js").default}
+   */
+  #player;
   #preventOverflow;
   #target;
   #delay;
@@ -22,7 +26,7 @@ export default class Popover extends Widget {
       throw new Error("Popover requires a target element.");
     }
 
-    this.player = player;
+    this.#player = player;
     this.#target = target;
     this.#preventOverflow = preventOverflow;
     this.#delay = delay;
@@ -36,6 +40,10 @@ export default class Popover extends Widget {
     this.on("closed", () => {
       this.#isOpen = false;
     });
+  }
+
+  get player() {
+    return this.#player;
   }
 
   get target() {

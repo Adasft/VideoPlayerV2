@@ -1,4 +1,4 @@
-import { PROXY_OFF_CALL_NAME } from "./event-emitter.js";
+import {PROXY_OFF_CALL_NAME} from "./event-emitter.js";
 
 export class ProxyEventBinder extends Function {
   /**
@@ -35,7 +35,7 @@ export class ProxyEventBinder extends Function {
    * @returns {Proxy<ProxyEventBinder>} An instance of ProxyEventBinder that can be used
    * to bind and unbind event listeners.
    */
-  constructor({ callName, delegateHandler, nonDelegateHandler }) {
+  constructor({callName, delegateHandler, nonDelegateHandler}) {
     super();
     this.target = null;
 
@@ -163,7 +163,7 @@ export class ProxyEventBinder extends Function {
      * to which the event listener will be attached directly.
      *
      * Example usage in this mode:
-     * - ignoreDelegation(document, "click", () => {}, { once: true });
+     * - ignoreDelegation("click", () => {}, { once: true });
      */
     if (typeof target === "string") {
       if (!this.#hasBindedTarget()) {

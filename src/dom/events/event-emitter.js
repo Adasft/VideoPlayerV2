@@ -1,4 +1,4 @@
-import { getRandomId, lookupMapValue, toSnakeCase } from "../../utils.js";
+import { getRandomId, lookupMapValue, toSnakeCase } from "../../utils/utils.js";
 import { EventProxyManager } from "./event-proxy-manager.js";
 import { NonDelegableEventHandler } from "./non-delegable-event-handler.js";
 
